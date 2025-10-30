@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>해움한국어 - 언어로 만나는 따뜻한 공동체</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;500;600;700&display=swap');
+        <!DOCTYPE html>
+        <html lang="ko">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>해움한국어 - 언어로 만나는 따뜻한 공동체</title>
+            <style>
+                @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;500;600;700&display=swap');
+        
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
+        
+                :root {
+                    --primary-green: #2d4a2b;
+                    --secondary-green: #4a6741;
+                    --light-green: #6b8e6b;
+                    --beige: #e8dcc6;
+                    --light-beige: #f8f5f0;
+                    --warm-white: #fdfcf8;
+                }
+        
+                body {
+                    font-family: 'Noto Sans KR', sans-serif;
+                    color: #333;
+                    line-height: 1.6;
+                    overflow-x: hidden;
+                }
+        
+                /* 헤더 */
+                header {
+                    background: var(--warm-white);
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+                    position: fixed;
+                    width: 100%;
+                    top: 0;
+                    z-index: 1000;
+                }
+        
+                nav {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 20px;
+                }
+        
+                .logo {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    text-decoration: none;
+                    color: var(--primary-green);
+                }
+        
+                .logo-icon {
+                    width: 40px;
+                    height: 40px;
+                    background: var(--beige);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 20px;
+                }
+        
+                .logo-text {
+                    font-family: 'Noto Serif KR', serif;
+                    font-size: 24px;
+                    font-weight: 600;
+                }
+        
+                .nav-menu {
+                    display: flex;
+                    gap: 30px;
+                    list-style: none;
+                }
+        
+                .nav-menu a {
+                    text-decoration: none;
+                    color: var(--primary-green);
+                    font-weight: 500;
+                    transition: color 0.3s;
+                }
+        
+                .nav-menu a:hover {
+                    color: var(--light-green);
+                }
+        
+                .mobile-menu {
+                    display: none;
+                    cursor: pointer;
+                }
+        
+                /* 히어로 섹션 */
+                .hero {
+                    margin-top: 80px;
+                    background: linear-gradient(135deg, var(--light-beige) 0%, var(--beige) 100%);
+                    padding: 80px 20px;
+                    text-align: center;
+                    position: relative;
+                    overflow: hidden;
+                }
+        
+                .hero::before {
+                    content: '';
+                    position: absolute;
+                    top: -50%;
+                    left: -50%;
+                    width: 200%;
+                    height: 200%;
+                    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M30 30m-10 0a10 10 0 1 1 20 0a10 10 0 1 1 -20 0'/%3E%3C/g%3E%3C/svg%3E");
+                    animation: float 20s linear infinite;
+                }
+        
+                @keyframes float {
+                    0% { transform: translate(0, 0) rotate(0deg); }
+                    100% { transform: translate(-100px, -100px) rotate(360deg); }
+                }
+        
+                .hero-content {
+                    position: relative;
+                    z-index: 1;
+                    max-width: 800px;
+                    margin: 0 auto;
+                }
+        
+                .hero h1 {
+                    font-family: 'Noto Serif KR', serif;
+                    font-size: 48px;
+                    color: var(--primary-green);
+                    margin-bottom: 20px;
+                }
+        
+                .hero .subtitle {
+                    font-size: 24px;
+                    color: var(--secondary-green);
+                    margin-bottom: 30px;
+                }
+        
+                .hero .description {
+                    font-size: 18px;
+                    line-height: 1.8;
+                    color: #555;
+                    margin-bottom: 40px;
+                }
+        
+                .cta-buttons {
+                    display: flex;
+                    gap: 20px;
+                    justify-content: center;
+                    flex-wrap: wrap;
+                }
+        
+                .btn {
+                    padding: 15px 30px;
+                    border-radius: 30px;
+                    text-decoration: none;
+                    font-weight: 500;
+                    transition: all 0.3s;
+                }
+        
+                .btn-primary {
+                    background: var(--primary-green);
+                    color: white;
+                }
+        
+                .btn-primary:hover {
+                    background: var(--secondary-green);
+                    transform: translateY(-2px);
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                }
+        
+                .btn-secondary {
+                    background: white;
+                    color: var(--primary-green);
+                    border: 2px solid var(--primary-green);
+                }
+        
+                .btn-secondary:hover {
+                    background: var(--primary-green);
+                    color: white;
+                }
+        
+                /* 섹션 공통 스타일 */
+                section {
+                    padding: 80px 20px;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                }
+        
+                .section-title {
+                    font-family: 'Noto Serif KR', serif;
+                    font-size: 36px;
+                    text-align: center;
+                    color: var(--primary-green);
+                    margin-bottom: 50px;
+                }
+        
+                /* 프로그램 섹션 */
+                .programs {
+                    background: var(--warm-white);
+                }
+        
+                .program-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                    gap: 30px;
+                }
+        
+                .program-card {
+                    background: white;
+                    border-radius: 12px;
+                    padding: 30px;
+                    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+                    transition: all 0.3s;
+                }
+        
+                .program-card:hover {
+                    transform: translateY(-5px);
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+                }
+        
+                .program-icon {
+                    width: 60px;
+                    height: 60px;
+                    background: var(--light-beige);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 30px;
+                    margin-bottom: 20px;
+                }
+        
+                .program-card h3 {
+                    font-size: 22px;
+                    color: var(--primary-green);
+                    margin-bottom: 15px;
+                }
+        
+                .program-card p {
+                    color: #666;
+                    line-height: 1.8;
+                }
+        
+                /* 철학 섹션 */
+                .philosophy-content {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 50px;
+                    align-items: center;
+                }
+        
+                .philosophy-text h3 {
+                    font-family: 'Noto Serif KR', serif;
+                    font-size: 28px;
+                    color: var(--primary-green);
+                    margin-bottom: 20px;
+                }
+        
+                .philosophy-text p {
+                    font-size: 16px;
+                    line-height: 1.8;
+                    color: #555;
+                    margin-bottom: 20px;
+                }
+        
+                .philosophy-quote {
+                    background: var(--light-beige);
+                    padding: 30px;
+                    border-radius: 12px;
+                    border-left: 4px solid var(--light-green);
+                    font-style: italic;
+                    font-size: 18px;
+                    color: var(--secondary-green);
+                }
+        
+                .philosophy-image {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+        
+                .flower-art {
+                    width: 300px;
+                    height: 300px;
+                    background: var(--beige);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 150px;
+                    position: relative;
+                    animation: bloom 3s ease-in-out infinite alternate;
+                }
+        
+                @keyframes bloom {
+                    0% { transform: scale(1); }
+                    100% { transform: scale(1.05); }
+                }
+        
+                /* 만남의 장 섹션 */
+                .community {
+                    background: var(--light-beige);
+                }
+        
+                .community-cards {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+                    gap: 30px;
+                }
+        
+                .community-card {
+                    background: white;
+                    border-radius: 12px;
+                    overflow: hidden;
+                    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+                }
+        
+                .community-card-header {
+                    background: var(--secondary-green);
+                    color: white;
+                    padding: 20px;
+                    text-align: center;
+                }
+        
+                .community-card-header h3 {
+                    font-size: 22px;
+                    margin-bottom: 5px;
+                }
+        
+                .community-card-content {
+                    padding: 30px;
+                }
+        
+                .community-card-content ul {
+                    list-style: none;
+                }
+        
+                .community-card-content li {
+                    padding: 10px 0;
+                    border-bottom: 1px solid #eee;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+        
+                .community-card-content li:last-child {
+                    border-bottom: none;
+                }
+        
+                /* 연락처 섹션 */
+                .contact {
+                    background: var(--primary-green);
+                    color: white;
+                    text-align: center;
+                }
+        
+                .contact .section-title {
+                    color: white;
+                }
+        
+                .contact-info {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                    gap: 40px;
+                    margin-bottom: 40px;
+                }
+        
+                .contact-item {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 10px;
+                }
+        
+                .contact-icon {
+                    width: 60px;
+                    height: 60px;
+                    background: rgba(255,255,255,0.2);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 30px;
+                }
+        
+                .contact-item h4 {
+                    font-size: 20px;
+                    margin-bottom: 5px;
+                }
+        
+                .contact-item p {
+                    opacity: 0.9;
+                }
+        
+                /* 푸터 */
+                footer {
+                    background: var(--primary-green);
+                    color: white;
+                    text-align: center;
+                    padding: 30px;
+                    border-top: 1px solid rgba(255,255,255,0.1);
+                }
+        
+                /* 반응형 */
+                @media (max-width: 768px) {
+                    .nav-menu {
+                        display: none;
+                    }
+            
+                    .mobile-menu {
+                        display: block;
+                    }
+            
+                    .hero h1 {
+                        font-size: 36px;
+                    }
+            
+                    .hero .subtitle {
+                        font-size: 20px;
+                    }
+            
+                    .philosophy-content {
+                        grid-template-columns: 1fr;
+                    }
+            
+                    .cta-buttons {
+                        flex-direction: column;
+                        align-items: center;
+                    }
+            
+                    .btn {
+                        width: 200px;
+                        text-align: center;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <!-- 헤더 -->
+            <header>
+                <nav>
+                    <a href="#" class="logo">
+                        <div class="logo-icon">🌸</div>
+                        <div class="logo-text">해움한국어</div>
+                    </a>
+                    <ul class="nav-menu">
+                        <li><a href="#philosophy">교육철학</a></li>
+                        <li><a href="#programs">프로그램</a></li>
+                        <li><a href="#community">만남의 장</a></li>
+                        <li><a href="#contact">연락처</a></li>
+                    </ul>
+                    <div class="mobile-menu">☰</div>
+                </nav>
+            </header>
+    
+            <!-- 히어로 섹션 -->
+            <section class="hero">
+                <div class="hero-content">
+                    <h1>언어로 만나는 따뜻한 공동체</h1>
+                    <p class="subtitle">함께 읽고, 이야기하며, 어우러지는 꿈꾸는 공간</p>
+                    <p class="description">
+                        해움한국어는 조선시대 시사(詩社)와 18세기 프랑스 살롱처럼,<br>
+                        지적인 교류와 문화적 소통이 자연스럽게 이루어지는 열린 마당입니다.
+                    </p>
+                    <div class="cta-buttons">
+                        <a href="#" class="btn btn-primary">프로그램 둘러보기</a>
+                        <a href="#" class="btn btn-secondary">네이버 예약</a>
+                    </div>
+                </div>
+            </section>
+    
+            <!-- 프로그램 섹션 -->
+            <section class="programs" id="programs">
+                <h2 class="section-title">다양한 이웃, 맞춤형 배움</h2>
+                <div class="program-grid">
+                    <div class="program-card">
+                        <div class="program-icon">🌏</div>
+                        <h3>온라인 한국어 교육</h3>
+                        <p>전 세계 어디서나 참여 가능한 1:1 맞춤 화상 수업. TOPIK 대비, 비즈니스 한국어, 발음 교정 등 개인별 목표에 맞춘 프로그램</p>
+                    </div>
+                    <div class="program-card">
+                        <div class="program-icon">📚</div>
+                        <h3>문학 낭독 및 언어 교환</h3>
+                        <p>다양한 문화권의 참가자들이 함께 한국 문학을 읽고 각자의 관점으로 이야기를 나누는 특별한 만남의 시간</p>
+                    </div>
+                    <div class="program-card">
+                        <div class="program-icon">💬</div>
+                        <h3>인문학 독서 토론</h3>
+                        <p>철학, 역사, 문학 등 다양한 주제의 책을 함께 읽고 깊이 있는 대화를 나누는 지적 성장의 공간</p>
+                    </div>
+                    <div class="program-card">
+                        <div class="program-icon">🤖</div>
+                        <h3>특별 워크샵</h3>
+                        <p>'AI와 인간' 대화 모임 등 시대의 고민을 함께 나누고 성찰하는 특별 프로그램</p>
+                    </div>
+                    <div class="program-card">
+                        <div class="program-icon">🏢</div>
+                        <h3>오프라인 소그룹 수업</h3>
+                        <p>서울 중구의 아늑한 공간에서 진행되는 대면 수업. 문화 체험과 함께하는 실용 한국어 학습</p>
+                    </div>
+                    <div class="program-card">
+                        <div class="program-icon">🎯</div>
+                        <h3>맞춤형 출강 교육</h3>
+                        <p>기업, 대학, 기관의 필요에 맞춘 맞춤형 한국어 및 인문학 교육 프로그램</p>
+                    </div>
+                </div>
+            </section>
+    
+            <!-- 철학 섹션 -->
+            <section class="philosophy" id="philosophy">
+                <h2 class="section-title">대화와 토론이 살아 숨 쉬는 배움터</h2>
+                <div class="philosophy-content">
+                    <div class="philosophy-text">
+                        <h3>파울로 프레이리의 대화적 교수법</h3>
+                        <p>
+                            해움한국어는 일방적인 지식 전달이 아닌, 서로의 생각을 나누고 배우는 쌍방향 소통을 지향합니다. 
+                            참가자들은 자신의 경험과 관점을 나누며 새로운 의미를 발견하고 함께 지혜를 쌓아갑니다.
+                        </p>
+                        <div class="philosophy-quote">
+                            "수동적 지식 수용이 아닌<br>
+                            능동적 의미 구성의 배움터"
+                        </div>
+                    </div>
+                    <div class="philosophy-image">
+                        <div class="flower-art">🌺</div>
+                    </div>
+                </div>
+            </section>
+    
+            <!-- 만남의 장 섹션 -->
+            <section class="community" id="community">
+                <h2 class="section-title">시사와 살롱 문화로 꿈꾸는 곳</h2>
+                <div class="community-cards">
+                    <div class="community-card">
+                        <div class="community-card-header">
+                            <h3>정기 모임</h3>
+                            <p>매주 열리는 다양한 프로그램</p>
+                        </div>
+                        <div class="community-card-content">
+                            <ul>
+                                <li>📖 화요일: 한국 현대문학 낭독회</li>
+                                <li>🌍 목요일: 다문화 언어 교환 모임</li>
+                                <li>💭 토요일: 인문학 독서 토론</li>
+                                <li>🎭 일요일: 문화 체험 프로그램</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="community-card">
+                        <div class="community-card-header">
+                            <h3>특별 프로그램</h3>
+                            <p>시대를 읽는 깊이 있는 대화</p>
+                        </div>
+                        <div class="community-card-content">
+                            <ul>
+                                <li>🤖 AI와 인간 대화 모임</li>
+                                <li>🌱 지속가능한 삶 워크샵</li>
+                                <li>🎨 예술과 언어의 만남</li>
+                                <li>📚 작가와의 대화</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+    
+            <!-- 연락처 섹션 -->
+            <section class="contact" id="contact">
+                <h2 class="section-title">함께하는 방법</h2>
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <div class="contact-icon">📍</div>
+                        <h4>오시는 길</h4>
+                        <p>서울시 중구 세종대로27<br>HM빌딩 3층</p>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">📞</div>
+                        <h4>전화문의</h4>
+                        <p>02-318-2032<br>평일 09:00-22:00</p>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">💬</div>
+                        <h4>온라인 문의</h4>
+                        <p>shdang.kr<br>info@haeum-korean.kr</p>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">📅</div>
+                        <h4>예약하기</h4>
+                        <p>네이버 예약<br>온라인 상담 신청</p>
+                    </div>
+                </div>
+                <div class="cta-buttons">
+                    <a href="#" class="btn btn-secondary">네이버 예약 바로가기</a>
+                </div>
+            </section>
+    
+            <!-- 푸터 -->
+            <footer>
+                <p>© 2024 해움한국어. 모든 권리 보유.<br>
+                작은 변화가 만드는 큰 물결, 함께 만들어가요.</p>
+            </footer>
+    
+            <script>
+                // 부드러운 스크롤
+                document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                    anchor.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        document.querySelector(this.getAttribute('href')).scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                    });
+                });
+        
+                // 모바일 메뉴 토글
+                document.querySelector('.mobile-menu').addEventListener('click', function() {
+                    const navMenu = document.querySelector('.nav-menu');
+                    navMenu.style.display = navMenu.style.display === 'flex' ? 'none' : 'flex';
+                    navMenu.style.flexDirection = 'column';
+                    navMenu.style.position = 'absolute';
+                    navMenu.style.top = '80px';
+                    navMenu.style.left = '0';
+                    navMenu.style.right = '0';
+                    navMenu.style.background = 'white';
+                    navMenu.style.padding = '20px';
+                    navMenu.style.boxShadow = '0 5px 10px rgba(0,0,0,0.1)';
+                });
+            </script>
+        </body>
+        </html>
+            color: var(--primary-green);
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--beige);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .logo-text {
+            font-family: 'Noto Serif KR', serif;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .nav-menu {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+        
+        .nav-menu a {
+            text-decoration: none;
+            color: var(--primary-green);
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-menu a:hover {
+            color: var(--light-green);
+        }
+        
+        .mobile-menu {
+            display: none;
+            cursor: pointer;
+        }
+        
+        /* 히어로 섹션 */
+        .hero {
+            margin-top: 80px;
+            background: linear-gradient(135deg, var(--light-beige) 0%, var(--beige) 100%);
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M30 30m-10 0a10 10 0 1 1 20 0a10 10 0 1 1 -20 0'/%3E%3C/g%3E%3C/svg%3E");
+            animation: float 20s linear infinite;
+        }
+        
+        @keyframes float {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(-100px, -100px) rotate(360deg); }
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .hero h1 {
+            font-family: 'Noto Serif KR', serif;
+            font-size: 48px;
+            color: var(--primary-green);
+            margin-bottom: 20px;
+        }
+        
+        .hero .subtitle {
+            font-size: 24px;
+            color: var(--secondary-green);
+            margin-bottom: 30px;
+        }
+        
+        .hero .description {
+            font-size: 18px;
+            line-height: 1.8;
+            color: #555;
+            margin-bottom: 40px;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: var(--primary-green);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--secondary-green);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: var(--primary-green);
+            border: 2px solid var(--primary-green);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--primary-green);
+            color: white;
+        }
+        
+        /* 섹션 공통 스타일 */
+        section {
+            padding: 80px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .section-title {
+            font-family: 'Noto Serif KR', serif;
+            font-size: 36px;
+            text-align: center;
+            color: var(--primary-green);
+            margin-bottom: 50px;
+        }
+        
+        /* 프로그램 섹션 */
+        .programs {
+            background: var(--warm-white);
+        }
+        
+        .program-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        
+        .program-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+        }
+        
+        .program-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        
+        .program-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--light-beige);
+            border-radius: 50%;
+            display: flex;
+            align서 alignments etc continued...
