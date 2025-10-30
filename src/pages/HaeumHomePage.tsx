@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,9 @@ import { cn } from "@/lib/utils";
 
 function HaeumHomePage(): JSX.Element {
   const [showNotice, setShowNotice] = useState(true);
+  const [formMessage, setFormMessage] = useState<string | null>(null);
+
+  const subscriptionEndpoint = (import.meta.env.VITE_SUBSCRIPTION_ENDPOINT ?? "").trim();
 
   useEffect(() => {
     const timer = window.setTimeout(() => setShowNotice(false), 4000);
@@ -162,12 +165,72 @@ function HaeumHomePage(): JSX.Element {
             <p className="mb-4 text-sm text-[#444]">
               네이버 예약을 통해 모임에 참여하고, 새 프로그램 소식을 받아보세요.
             </p>
-            <div className="flex flex-col gap-4 md:flex-row">
-              <Input placeholder="이메일 주소 입력" className="w-full md:w-1/2" />
-              <Button className="bg-[#317873] text-white hover:bg-[#285f5b]">
-                소식 받기
-              </Button>
-            </div>
+            <form
+              className="pageclip-form flex flex-col gap-4 rounded-xl border border-[#317873]/10 bg-white p-6 shadow-sm"
+              action={subscriptionEndpoint || undefined}
+              method="post"
+              onSubmit={(event: FormEvent<HTMLFormElement>) => {
+                if (!subscriptionEndpoint) {
+                  event.preventDefault();
+                  setFormMessage("제출 경로가 설정되지 않았습니다. VITE_SUBSCRIPTION_ENDPOINT 값을 확인해주세요.");
+                  return;
+                }
+
+                setFormMessage(null);
+              }}
+            >
+              <div className="flex flex-col gap-4 md:flex-row">
+                <Input
+                  type="email"
+                  name="email"
+                  placeholder="이메일 주소 입력"
+                  autoComplete="email"
+                  className="w-full md:w-1/2"
+                  aria-label="이메일 주소"
+                  required
+                />
+                <Button
+                  type="submit"
+                  disabled={!subscriptionEndpoint}
+                  className="pageclip-form__submit bg-[#317873] text-white hover:bg-[#285f5b] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <span>소식 받기</span>
+                </Button>
+              </div>
+
+              <label className="flex items-start gap-3 text-xs text-[#444]">
+                <input
+                  type="checkbox"
+                  name="privacyConsent"
+                  className="mt-1 h-4 w-4 rounded border border-[#317873]/50"
+                  value="accepted"
+                  required
+                />
+                <span>
+                  개인정보 수집·이용에 동의합니다. 수집된 이메일은 해움한국어 프로그램 및 소식 안내 목적에만 사용하며,
+                  이용자는 언제든지 구독 해지를 요청할 수 있습니다.
+                </span>
+              </label>
+
+              <input type="hidden" name="source" value="haeum-homepage" />
+
+              <p className="text-[11px] leading-relaxed text-[#777]">
+                * 수집 및 보관 항목: 이메일 주소 · 수집 목적: 프로그램 소식 및 안내 발송 · 보유 및 이용 기간: 구독 해지 요청 시까지
+              </p>
+
+              {formMessage && (
+                <div className="rounded-md bg-[#fdeaea] px-4 py-2 text-xs text-[#8c2f39]">
+                  {formMessage}
+                </div>
+              )}
+
+              {!subscriptionEndpoint && !formMessage && (
+                <div className="rounded-md border border-dashed border-[#317873]/30 bg-[#f9f7f2] px-4 py-3 text-[11px] text-[#555]">
+                  VITE_SUBSCRIPTION_ENDPOINT 환경 변수가 설정되지 않아 제출 내용이 저장되지 않습니다. Pageclip에서 발급한 폼
+                  액션 URL을 환경 변수로 설정한 뒤 다시 시도해주세요.
+                </div>
+              )}
+            </form>
           </section>
 
           <Separator className="my-10" />
