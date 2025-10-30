@@ -1,0 +1,32 @@
+name: Mailchimp → Notion Sync
+
+on:
+  schedule:
+    # 매 시 17분마다(UTC). 필요에 맞게 조정하세요.
+    - cron: "17 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install script deps (no project impact)
+        run: |
+          npm i @notionhq/client node-fetch@3
+
+      - name: Run Mailchimp → Notion sync
+        env:
+          MAILCHIMP_API_KEY: ${{ secrets.MAILCHIMP_API_KEY }}
+          MAILCHIMP_DC: ${{ secrets.MAILCHIMP_DC }} # e.g. us16
+          MAILCHIMP_LIST_ID: ${{ secrets.MAILCHIMP_LIST_ID }}
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+        run: node .github/scripts/sync-mailchimp-to-notion.js
