@@ -7,6 +7,9 @@ import { cn } from "@/lib/utils";
 
 function HaeumHomePage(): JSX.Element {
   const [showNotice, setShowNotice] = useState(true);
+  const [email, setEmail] = useState("");
+  const [consent, setConsent] = useState(false);
+  const [formStatus, setFormStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [formMessage, setFormMessage] = useState<string | null>(null);
 
   const subscriptionEndpoint = (
@@ -170,16 +173,56 @@ function HaeumHomePage(): JSX.Element {
             </p>
             <form
               className="pageclip-form flex flex-col gap-4 rounded-xl border border-[#317873]/10 bg-white p-6 shadow-sm"
-              action={subscriptionEndpoint || undefined}
-              method="post"
-              onSubmit={(event: FormEvent<HTMLFormElement>) => {
+              onSubmit={async (event: FormEvent<HTMLFormElement>) => {
+                event.preventDefault();
+
                 if (!subscriptionEndpoint) {
-                  event.preventDefault();
-                  setFormMessage("제출 경로가 설정되지 않았습니다. VITE_SUBSCRIPTION_ENDPOINT 값을 확인해주세요.");
+                  setFormStatus("error");
+                  setFormMessage(
+                    "제출 경로가 설정되지 않았습니다. VITE_SUBSCRIPTION_ENDPOINT 값을 확인해주세요."
+                  );
                   return;
                 }
 
+                if (!consent) {
+                  setFormStatus("error");
+                  setFormMessage("소식 받기를 위해 개인정보 수집 및 이용에 동의해주세요.");
+                  return;
+                }
+
+                setFormStatus("submitting");
                 setFormMessage(null);
+
+                try {
+                  const formData = new FormData();
+                  formData.append("email", email.trim());
+                  formData.append("privacyConsent", "accepted");
+                  formData.append("source", "haeum-homepage");
+
+                  const response = await fetch(subscriptionEndpoint, {
+                    method: "POST",
+                    body: formData,
+                    headers: { Accept: "application/json" },
+                    mode: "cors",
+                  });
+
+                  if (!response.ok) {
+                    throw new Error(`${response.status} ${response.statusText}`);
+                  }
+
+                  setFormStatus("success");
+                  setFormMessage("구독 신청이 완료되었습니다. 곧 소식으로 찾아뵐게요!");
+                  setEmail("");
+                  setConsent(false);
+                  window.setTimeout(() => {
+                    setFormStatus("idle");
+                    setFormMessage(null);
+                  }, 6000);
+                } catch (error) {
+                  console.error("subscription error", error);
+                  setFormStatus("error");
+                  setFormMessage("제출 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+                }
               }}
             >
               <div className="flex flex-col gap-4 md:flex-row">
@@ -191,13 +234,27 @@ function HaeumHomePage(): JSX.Element {
                   className="w-full md:w-1/2"
                   aria-label="이메일 주소"
                   required
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
                 />
                 <Button
                   type="submit"
-                  disabled={!subscriptionEndpoint}
-                  className="pageclip-form__submit bg-[#317873] text-white hover:bg-[#285f5b] disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={
+                    !subscriptionEndpoint ||
+                    formStatus === "submitting" ||
+                    email.trim().length === 0 ||
+                    !consent
+                  }
+                  className="bg-[#317873] text-white hover:bg-[#285f5b] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  <span>소식 받기</span>
+                  {formStatus === "submitting" ? (
+                    <span className="flex items-center gap-2 text-sm">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                      전송 중...
+                    </span>
+                  ) : (
+                    "소식 받기"
+                  )}
                 </Button>
               </div>
 
@@ -206,8 +263,8 @@ function HaeumHomePage(): JSX.Element {
                   type="checkbox"
                   name="privacyConsent"
                   className="mt-1 h-4 w-4 rounded border border-[#317873]/50"
-                  value="accepted"
-                  required
+                  checked={consent}
+                  onChange={(event) => setConsent(event.target.checked)}
                 />
                 <span>
                   개인정보 수집·이용에 동의합니다. 수집된 이메일은 해움한국어 프로그램 및 소식 안내 목적에만 사용하며,
@@ -215,19 +272,29 @@ function HaeumHomePage(): JSX.Element {
                 </span>
               </label>
 
-              <input type="hidden" name="source" value="haeum-homepage" />
+              <p className="text-[11px] text-[#5c6f66]">
+                언제든지 이메일 하단의 해지 링크 또는 연락을 통해 발송 중단을 요청하실 수 있어요.
+              </p>
 
               <p className="text-[11px] leading-relaxed text-[#777]">
                 * 수집 및 보관 항목: 이메일 주소 · 수집 목적: 프로그램 소식 및 안내 발송 · 보유 및 이용 기간: 구독 해지 요청 시까지
               </p>
 
-              {formMessage && (
-                <div className="rounded-md bg-[#fdeaea] px-4 py-2 text-xs text-[#8c2f39]">
-                  {formMessage}
-                </div>
-              )}
+              <div
+                className={cn(
+                  "rounded-md px-4 py-2 text-xs",
+                  formStatus === "success"
+                    ? "bg-[#e0f2ef] text-[#285f5b]"
+                    : formStatus === "error"
+                      ? "bg-[#fdeaea] text-[#8c2f39]"
+                      : "hidden"
+                )}
+                aria-live="polite"
+              >
+                {formMessage}
+              </div>
 
-              {!subscriptionEndpoint && !formMessage && (
+              {!subscriptionEndpoint && (
                 <div className="rounded-md border border-dashed border-[#317873]/30 bg-[#f9f7f2] px-4 py-3 text-[11px] text-[#555]">
                   VITE_SUBSCRIPTION_ENDPOINT 환경 변수가 설정되지 않아 제출 내용이 저장되지 않습니다. Pageclip에서 발급한 폼
                   액션 URL을 환경 변수로 설정한 뒤 다시 시도해주세요.
