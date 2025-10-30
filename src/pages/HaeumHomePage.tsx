@@ -9,7 +9,10 @@ function HaeumHomePage(): JSX.Element {
   const [showNotice, setShowNotice] = useState(true);
   const [formMessage, setFormMessage] = useState<string | null>(null);
 
-  const subscriptionEndpoint = (import.meta.env.VITE_SUBSCRIPTION_ENDPOINT ?? "").trim();
+  const subscriptionEndpoint = (
+    import.meta.env.VITE_SUBSCRIPTION_ENDPOINT ??
+    "https://send.pageclip.co/sBoFSNC6F9AuzNH0c1Fs5YBjtjOb5mkA"
+  ).trim();
 
   useEffect(() => {
     const timer = window.setTimeout(() => setShowNotice(false), 4000);
