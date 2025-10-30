@@ -67,54 +67,45 @@ function HaeumHomePage(): JSX.Element {
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
               <a
-                href="https://m.place.naver.com/your-smart-place"
+                href="https://m.place.naver.com/place/1283919586/home"
                 target="_blank"
                 rel="noreferrer"
                 className="group flex items-center gap-2 rounded-full border border-[#317873]/20 bg-white px-5 py-2 text-sm font-medium text-[#317873] shadow-sm transition hover:border-[#317873] hover:bg-[#317873] hover:text-white"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  className="h-5 w-5 fill-current"
+                <img
+                  src="/icons/place.png"
+                  alt=""
+                  className="h-5 w-5"
                   aria-hidden="true"
-                >
-                  <path d="M4 4h16v16H4z" opacity="0.1" />
-                  <path d="M9.5 7H8v10h2v-5.76L14 17h2V7h-2v5.73z" />
-                </svg>
+                />
                 네이버 스마트플레이스
               </a>
               <a
-                href="https://blog.naver.com/your-blog"
+                href="https://blog.naver.com/haeumkorean"
                 target="_blank"
                 rel="noreferrer"
                 className="group flex items-center gap-2 rounded-full border border-[#317873]/20 bg-white px-5 py-2 text-sm font-medium text-[#317873] shadow-sm transition hover:border-[#317873] hover:bg-[#317873] hover:text-white"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  className="h-5 w-5 fill-current"
+                <img
+                  src="/icons/blog.png"
+                  alt=""
+                  className="h-5 w-5"
                   aria-hidden="true"
-                >
-                  <path d="M4 4h16v16H4z" opacity="0.1" />
-                  <path d="M8 8h2.75a2.25 2.25 0 0 1 0 4.5H10v3.5H8zm2 3.08h.7a.83.83 0 1 0 0-1.66H10zM13.5 8H16a2 2 0 0 1 2 2v5.5h-2v-1.4h-2v1.4h-2V10a2 2 0 0 1 2-2m0 3.3H16V10a.3.3 0 0 0-.3-.3h-.9a.3.3 0 0 0-.3.3z" />
-                </svg>
+                />
                 네이버 블로그
               </a>
               <a
-                href="https://talk.naver.com/your-talk"
+                href="https://talk.naver.com/W7AQRM9"
                 target="_blank"
                 rel="noreferrer"
                 className="group flex items-center gap-2 rounded-full border border-[#317873]/20 bg-white px-5 py-2 text-sm font-medium text-[#317873] shadow-sm transition hover:border-[#317873] hover:bg-[#317873] hover:text-white"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  className="h-5 w-5 fill-current"
+                <img
+                  src="/icons/talktalk.png"
+                  alt=""
+                  className="h-5 w-5"
                   aria-hidden="true"
-                >
-                  <path d="M12 3a9 9 0 0 0-9 9c0 4.97 4.03 9 9 9 1.36 0 2.65-.3 3.82-.87L21 21l-.47-5.17A8.97 8.97 0 0 0 21 12a9 9 0 0 0-9-9z" opacity="0.15" />
-                  <path d="M12 5a7 7 0 0 0-4.96 11.94l-.3 3.3 3.02-1.4A7 7 0 1 0 12 5zm0 2a5 5 0 0 1 0 10 5.02 5.02 0 0 1-2.46-.66l-.53-.3-.6.28.08-.91-.66-.45A5 5 0 0 1 12 7z" />
-                </svg>
+                />
                 네이버 톡톡
               </a>
             </div>
