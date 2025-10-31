@@ -29,6 +29,43 @@ const config: Config = {
           "0%": { transform: "translate(0,0) rotate(0deg)" },
           "100%": { transform: "translate(-120px,-120px) rotate(360deg)" },
         },
+        // central cluster: gentle vertical bob using per-dot amplitude via CSS var(--yAmp)
+        bobY: {
+          "0%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(calc(-1 * var(--yAmp, 32px)))" },
+          "100%": { transform: "translateY(0)" },
+        },
+        bobYAlt: {
+          "0%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(var(--yAmp, 32px))" },
+          "100%": { transform: "translateY(0)" },
+        },
+        // subtle X sway (used standalone or combined feel)
+        swayX: {
+          "0%": { transform: "translateX(0)" },
+          "50%": { transform: "translateX(var(--xAmp, 12px))" },
+          "100%": { transform: "translateX(0)" },
+        },
+        // weave: combine X sway with opposite-phase Y bob so paths cross near center
+        weaveUp: {
+          "0%": { transform: "translate(0, 0)" },
+          "50%": { transform: "translate(var(--xAmp, 12px), calc(-1 * var(--yAmp, 32px)))" },
+          "100%": { transform: "translate(0, 0)" },
+        },
+        weaveDown: {
+          "0%": { transform: "translate(0, 0)" },
+          "50%": { transform: "translate(calc(-1 * var(--xAmp, 12px)), var(--yAmp, 32px))" },
+          "100%": { transform: "translate(0, 0)" },
+        },
+        // vertical flow: start offscreen and traverse straight through center (no X motion)
+        flowDown: {
+          "0%": { transform: "translateY(-60vh)" },
+          "100%": { transform: "translateY(60vh)" },
+        },
+        flowUp: {
+          "0%": { transform: "translateY(60vh)" },
+          "100%": { transform: "translateY(-60vh)" },
+        },
         // very subtle pulsing for optional central blob
         pulseSoft: {
           "0%": { transform: "scale(1)" },
@@ -64,6 +101,45 @@ const config: Config = {
         orbitCCW30: "orbitCCW 30s linear infinite",
         orbitCCW40: "orbitCCW 40s linear infinite",
         orbitCCW60: "orbitCCW 60s linear infinite",
+        // central cluster bobbing presets (motion-safe in JSX)
+        bobY28: "bobY 28s linear infinite",
+        bobY36: "bobY 36s linear infinite",
+        bobY48: "bobY 48s linear infinite",
+        bobY60: "bobY 60s linear infinite",
+        bobY72: "bobY 72s linear infinite",
+        bobYAlt28: "bobYAlt 28s linear infinite",
+        bobYAlt36: "bobYAlt 36s linear infinite",
+        bobYAlt48: "bobYAlt 48s linear infinite",
+        bobYAlt60: "bobYAlt 60s linear infinite",
+        bobYAlt72: "bobYAlt 72s linear infinite",
+        // subtle X sway
+        swayX48: "swayX 48s linear infinite",
+        swayX60: "swayX 60s linear infinite",
+        swayX72: "swayX 72s linear infinite",
+        // weave presets (opposite-phase crossings)
+        weaveUp36: "weaveUp 36s linear infinite",
+        weaveUp48: "weaveUp 48s linear infinite",
+        weaveUp60: "weaveUp 60s linear infinite",
+        weaveUp72: "weaveUp 72s linear infinite",
+        weaveUp84: "weaveUp 84s linear infinite",
+        weaveDown36: "weaveDown 36s linear infinite",
+        weaveDown48: "weaveDown 48s linear infinite",
+        weaveDown60: "weaveDown 60s linear infinite",
+        weaveDown72: "weaveDown 72s linear infinite",
+        weaveDown84: "weaveDown 84s linear infinite",
+        // vertical flow presets (no X motion)
+        flowDown36: "flowDown 36s linear infinite",
+        flowDown48: "flowDown 48s linear infinite",
+        flowDown60: "flowDown 60s linear infinite",
+        flowDown72: "flowDown 72s linear infinite",
+        flowDown84: "flowDown 84s linear infinite",
+        flowDown96: "flowDown 96s linear infinite",
+        flowUp36: "flowUp 36s linear infinite",
+        flowUp48: "flowUp 48s linear infinite",
+        flowUp60: "flowUp 60s linear infinite",
+        flowUp72: "flowUp 72s linear infinite",
+        flowUp84: "flowUp 84s linear infinite",
+        flowUp96: "flowUp 96s linear infinite",
         floatTexture30: "floatTexture 30s linear infinite",
         pulseSoft: "pulseSoft 6s ease-in-out infinite alternate",
         revealUp: "revealUp 560ms cubic-bezier(0.22,0.61,0.36,1) forwards",

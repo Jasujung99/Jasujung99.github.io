@@ -1,12 +1,31 @@
 import React, { useEffect, useRef } from "react";
 
 // Mixed animation background: warm gradient + orbiting dots (emphasized) + central sun glow
-// - Tailwind keyframes used: orbitCW, floatTexture, pulseSoft
+// - Tailwind keyframes used: orbitCW, floatTexture, pulseSoft, bobY/bobYAlt
 // - Respects prefers-reduced-motion via motion-safe utilities
 
 export type AnimatedBackgroundProps = {
   className?: string;
 };
+
+// 튜닝 파라미터 (빠른 감성 조정용)
+const CLUSTER_COUNT = 30; // 24~36 권장
+const SIZE_MIN = 18;
+const SIZE_MAX = 72;
+const ALPHA_MIN = 0.06; // 더 은은하게
+const ALPHA_MAX = 0.18; // 더 연하게
+const RADIUS_MIN = 20; // px
+const RADIUS_MAX = 160; // px
+const DURATION_SET = [36, 48, 60, 72, 84, 96] as const; // vertical flow reference set
+const DELAY_MAX = 8; // s (wider phase spread)
+// 수직 플로우만 사용하므로 Y/X 앰플리튜드/코호트 파라미터는 미사용
+const Y_AMPLITUDE_MIN = 24; // px (legacy, 미사용)
+const Y_AMPLITUDE_MAX = 56; // px (legacy, 미사용)
+const X_AMPLITUDE_MIN = 8; // px (legacy, 미사용)
+const X_AMPLITUDE_MAX = 16; // px (legacy, 미사용)
+const COUNT_WEAVE_RATIO = 0.0; // weave 미사용
+const BLUR_MAX = 2; // px
+const X_BAND_PX = 160; // 중심 기준 좌우 밴드 폭
 
 export default function AnimatedBackground({ className = "" }: AnimatedBackgroundProps) {
   // 링 설정: 반지름은 vw 단위(풀블리드 유지), 간격(간섭)을 줄이기 위해 개수 증가
@@ -25,6 +44,7 @@ export default function AnimatedBackground({ className = "" }: AnimatedBackgroun
   const textureRef = useRef<HTMLDivElement | null>(null);
   const orbitRef = useRef<HTMLDivElement | null>(null);
   const sunRef = useRef<HTMLDivElement | null>(null);
+  const clusterRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const reduce = typeof window !== "undefined" && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -33,7 +53,7 @@ export default function AnimatedBackground({ className = "" }: AnimatedBackgroun
     let raf = 0;
     let current = 0; // 0..1 (progress)
     let target = 0;  // 0..1 (progress)
-    const maxShift = 36; // px cap
+    const maxShift = 36; // px cap (기존 레이어 기준)
     const maxRot = 6; // deg
 
     const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
@@ -55,7 +75,7 @@ export default function AnimatedBackground({ className = "" }: AnimatedBackgroun
     const tick = () => {
       // 부드러운 관성 보간
       current += (target - current) * 0.12;
-      const shift = maxShift * current;
+      const shift = maxShift * current; // 0..36
       const rot = maxRot * current;
 
       if (textureRef.current) {
@@ -67,6 +87,12 @@ export default function AnimatedBackground({ className = "" }: AnimatedBackgroun
         orbitRef.current.style.transform = `translateY(${shift}px) rotate(${rot}deg)`;
         // 도트는 항상 선명하게 보이도록 불투명도 고정
         orbitRef.current.style.opacity = "1";
+      }
+      if (clusterRef.current) {
+        // 수직 플로우와의 충돌을 피하기 위해 패럴랙스는 비활성화(더 은은하게)
+        clusterRef.current.style.willChange = 'opacity';
+        clusterRef.current.style.transform = '';
+        clusterRef.current.style.opacity = "1"; // 선명도 유지
       }
       if (sunRef.current) {
         sunRef.current.style.willChange = 'opacity';
@@ -92,6 +118,16 @@ export default function AnimatedBackground({ className = "" }: AnimatedBackgroun
       if (raf) cancelAnimationFrame(raf);
     };
   }, []);
+
+  // 수직 플로우 전용 duration 풀(긴 주기 가중치↑)
+  const flowDurationPool: number[] = [
+    36, // weight 1
+    48, 48, // weight 2
+    60, 60, 60, // weight 3
+    72, 72, 72, 72, // weight 4
+    84, 84, 84, 84, 84, // weight 5
+    96, 96, 96, 96, 96, 96, // weight 6
+  ];
 
   return (
     <div
@@ -128,32 +164,74 @@ export default function AnimatedBackground({ className = "" }: AnimatedBackgroun
         }}
       />
 
-      {/* 중앙 클러스터: 중심 부근에 부유하는 도트 그룹 (부드러운 드리프트) */}
-      <div className="absolute left-1/2 top-1/2 h-0 w-0 -translate-x-1/2 -translate-y-1/2">
-        {Array.from({ length: 18 }).map((_, i) => {
-          const r = uhash(5000 + i);
-          const angle = r * Math.PI * 2;
-          const dist = 40 + r * 110; // 중심에서 40~150px 범위
-          const x = Math.cos(angle) * dist;
-          const y = Math.sin(angle) * dist;
-          const size = Math.round(28 * (0.85 + 0.3 * r));
-          const alpha = clamp(0.18 + (r - 0.5) * 0.12, 0.08, 0.28);
-          const delay = Math.round(r * 3000);
-          const dur = 20000 + Math.round(r * 10000);
+      {/* 중앙 클러스터: 중심 부근에 부유하는 도트 그룹 (Up/Down 교차 bobbing) */}
+      <div ref={clusterRef} className="absolute left-1/2 top-1/2 h-0 w-0 -translate-x-1/2 -translate-y-1/2">
+        {Array.from({ length: CLUSTER_COUNT }).map((_, i) => {
+          const r1 = uhash(5000 + i); // 위치/크기
+          const r2 = uhash(7000 + i); // 지터/알파
+          const r3 = uhash(9000 + i); // 애니 방향/블러
+          const r4 = uhash(11000 + i); // 딜레이
+          const r5 = uhash(13000 + i); // 앰플리튜드
+          const r6 = uhash(15000 + i); // 코호트(weave 여부)
+
+          // 수직 플로우 전용: X는 중앙 밴드 내에서 고정, Y는 키프레임으로 오프스크린↔오프스크린 이동
+          const x = Math.round((uhash(16000 + i) * 2 - 1) * X_BAND_PX);
+
+          // 크기: 18~72px 범위 + ±25% 지터 (클램프)
+          const baseSize = SIZE_MIN + r1 * (SIZE_MAX - SIZE_MIN);
+          const jitter = 0.75 + 0.5 * r2; // 0.75~1.25
+          const size = Math.round(clamp(baseSize * jitter, SIZE_MIN, SIZE_MAX));
+
+          // 알파: 더 은은한 범위 0.06~0.18
+          const alpha = clamp(ALPHA_MIN + (r3 * (ALPHA_MAX - ALPHA_MIN)), ALPHA_MIN, ALPHA_MAX);
+
+          // blur: 0~2px
+          const blurPx = Math.round(BLUR_MAX * r3);
+
+          // duration: 긴 주기 가중치 풀에서 선택
+          const poolIdx = Math.floor(r1 * flowDurationPool.length) % flowDurationPool.length;
+          const duration = flowDurationPool[poolIdx] as 36|48|60|72|84|96;
+
+          // delay: 0~8s (넓은 분산)
+          const delaySec = +(DELAY_MAX * r4).toFixed(2);
+
+          // 방향: 절반은 위→아래(flowDown), 절반은 아래→위(flowUp)
+          const goDown = r6 < 0.5;
+
+          // Tailwind JIT 포함을 위해 모든 후보를 명시
+          const flowUpClasses: Record<36|48|60|72|84|96, string> = {
+            36: "motion-safe:animate-flowUp36",
+            48: "motion-safe:animate-flowUp48",
+            60: "motion-safe:animate-flowUp60",
+            72: "motion-safe:animate-flowUp72",
+            84: "motion-safe:animate-flowUp84",
+            96: "motion-safe:animate-flowUp96",
+          };
+          const flowDownClasses: Record<36|48|60|72|84|96, string> = {
+            36: "motion-safe:animate-flowDown36",
+            48: "motion-safe:animate-flowDown48",
+            60: "motion-safe:animate-flowDown60",
+            72: "motion-safe:animate-flowDown72",
+            84: "motion-safe:animate-flowDown84",
+            96: "motion-safe:animate-flowDown96",
+          };
+          const animClass = (goDown ? flowDownClasses : flowUpClasses)[duration];
+
           return (
             <span
               key={`cluster-${i}`}
-              className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
+              className={["absolute -translate-x-1/2 -translate-y-1/2 rounded-full", animClass].join(" ")}
               style={{
                 left: `${x}px`,
-                top: `${y}px`,
+                top: `0px`,
                 width: `${size}px`,
                 height: `${size}px`,
                 background: `rgba(255,255,255,${alpha})`,
-                animation: `float ${dur}ms linear infinite`,
-                animationDelay: `${delay}ms`,
-                filter: r > 0.7 ? `blur(1.5px)` : undefined,
-              }}
+                // per-dot animation delay using inline style
+                animationDelay: `${delaySec}s`,
+                filter: blurPx ? `blur(${blurPx}px)` : undefined,
+                willChange: 'transform',
+              } as React.CSSProperties}
             />
           );
         })}
