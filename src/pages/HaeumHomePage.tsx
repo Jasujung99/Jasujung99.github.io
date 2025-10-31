@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,28 +8,14 @@ import { cn } from "@/lib/utils";
 function HaeumHomePage(): JSX.Element {
   const [showNotice, setShowNotice] = useState(true);
   const [email, setEmail] = useState("");
-  const [consent, setConsent] = useState(false);
   const [formStatus, setFormStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [formMessage, setFormMessage] = useState<string | null>(null);
 
-  const subscriptionEndpoint = "https://gmail.us16.list-manage.com/subscribe/post?u=97b661456e07809cbfeeb4342&id=7470798e2b&f_id=00cec2e1f0";
+  // Serverless backend endpoint (Cloudflare Worker)
+  const subscribeApi = "https://sweet-bird-16a2.jasujung404.workers.dev/api/subscribe";
 
-  const isMailchimp = /list-manage\.com\/subscribe\/post/i.test(subscriptionEndpoint);
-  const emailFieldName = isMailchimp ? "EMAIL" : "email";
-
-  // Derive Mailchimp anti-bot field name from action URL (b_<UID>_<LIST_ID>)
-  let antiBotFieldName: string | undefined = undefined;
-  if (isMailchimp) {
-    try {
-      const url = new URL(subscriptionEndpoint);
-      const uid = url.searchParams.get("u");
-      const listId = url.searchParams.get("id");
-      if (uid && listId) {
-        antiBotFieldName = `b_${uid}_${listId}`;
-      }
-    } catch {
-      // ignore URL parse errors
-    }
+  function isValidEmail(value: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
   }
 
   useEffect(() => {
@@ -186,55 +172,52 @@ function HaeumHomePage(): JSX.Element {
             <p className="mb-4 text-sm text-[#444]">
               네이버 예약을 통해 모임에 참여하고, 새 프로그램 소식을 받아보세요.
             </p>
-            <form
-              className="flex flex-col gap-4 rounded-xl border border-[#317873]/10 bg-white p-6 shadow-sm"
-              action={subscriptionEndpoint || undefined}
-              method="post"
-              target="_blank"
-              onSubmit={(event) => {
-                // 기본 제출 흐름 사용(Pageclip/Mailchimp 등). 필요한 사전 검증만 수행.
-                if (!subscriptionEndpoint) {
-                  event.preventDefault();
-                  setFormStatus("error");
-                  setFormMessage(
-                    "제출 경로가 설정되지 않았습니다. VITE_SUBSCRIPTION_ENDPOINT 값을 확인해주세요."
-                  );
-                  return;
-                }
-                if (!consent) {
-                  event.preventDefault();
-                  setFormStatus("error");
-                  setFormMessage("소식 받기를 위해 개인정보 수집 및 이용에 동의해주세요.");
-                  return;
-                }
-                // Mailchimp 등 일반 POST의 경우에만 로컬 로딩 상태 표시
-                setFormStatus("submitting");
-                setFormMessage(null);
-              }}
-            >
-              <div className="flex flex-col gap-4 md:flex-row">
-                {/* Hidden fields for Mailchimp tracking and anti-bot */}
-                {isMailchimp && (
-                  <>
-                    <input type="hidden" name="SOURCE" value="haeum-homepage" />
-                    {antiBotFieldName && (
-                      <input
-                        type="text"
-                        name={antiBotFieldName}
-                        tabIndex={-1}
-                        defaultValue=""
-                        style={{ position: "absolute", left: "-5000px" }}
-                        aria-hidden="true"
-                      />
-                    )}
-                  </>
-                )}
+            {/* 구독 영역: 인라인 입력 + 버튼 → 서버리스로 전송 */}
+            <div className="flex flex-col gap-3 rounded-xl border border-[#317873]/10 bg-white p-6 shadow-sm">
+              <form
+                className="flex w-full flex-col gap-3 md:flex-row md:items-center"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!isValidEmail(email)) {
+                    setFormStatus("error");
+                    setFormMessage("올바른 이메일 주소를 입력해 주세요.");
+                    return;
+                  }
+                  try {
+                    setFormStatus("submitting");
+                    setFormMessage(null);
+                    const resp = await fetch(subscribeApi, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ email, source: "haeum-homepage" }),
+                    });
+                    const data = await resp.json().catch(() => ({}));
+                    if (resp.ok && data?.ok) {
+                      setFormStatus("success");
+                      setFormMessage(
+                        data.created
+                          ? "신청이 접수되었습니다. 소식 전해드릴게요!"
+                          : "이미 신청하신 이메일입니다. 최신 소식을 곧 전해드릴게요."
+                      );
+                      setEmail("");
+                    } else if (data?.error === "invalid_email") {
+                      setFormStatus("error");
+                      setFormMessage("올바른 이메일 주소를 입력해 주세요.");
+                    } else {
+                      setFormStatus("error");
+                      setFormMessage("일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+                    }
+                  } catch (err) {
+                    setFormStatus("error");
+                    setFormMessage("네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+                  }
+                }}
+              >
                 <Input
                   type="email"
-                  name={emailFieldName}
                   placeholder="이메일 주소 입력"
                   autoComplete="email"
-                  className="w-full md:w-1/2"
+                  className="w-full flex-1 md:w-auto"
                   aria-label="이메일 주소"
                   required
                   value={email}
@@ -242,14 +225,9 @@ function HaeumHomePage(): JSX.Element {
                 />
                 <Button
                   type="submit"
-                  disabled={
-                    !subscriptionEndpoint ||
-                    formStatus === "submitting" ||
-                    email.trim().length === 0 ||
-                    !consent
-                  }
+                  disabled={formStatus === "submitting" || email.trim().length === 0}
                   className={cn(
-                    "bg-[#317873] text-white hover:bg-[#285f5b] disabled:cursor-not-allowed disabled:opacity-60"
+                    "shrink-0 bg-[#317873] text-white hover:bg-[#285f5b] disabled:cursor-not-allowed disabled:opacity-60"
                   )}
                 >
                   {formStatus === "submitting" ? (
@@ -261,30 +239,14 @@ function HaeumHomePage(): JSX.Element {
                     "소식 받기"
                   )}
                 </Button>
-              </div>
+              </form>
 
-              <label className="flex items-start gap-3 text-xs text-[#444]">
-                <input
-                  type="checkbox"
-                  name="privacyConsent"
-                  className="mt-1 h-4 w-4 rounded border border-[#317873]/50"
-                  checked={consent}
-                  onChange={(event) => setConsent(event.target.checked)}
-                />
-                <span>
-                  개인정보 수집·이용에 동의합니다. 수집된 이메일은 해움한국어 프로그램 및 소식 안내 목적에만 사용하며,
-                  이용자는 언제든지 구독 해지를 요청할 수 있습니다.
-                </span>
-              </label>
-
-              <p className="text-[11px] text-[#5c6f66]">
-                언제든지 이메일 하단의 해지 링크 또는 연락을 통해 발송 중단을 요청하실 수 있어요.
+              {/* 안내 문구: 입력 바로 아래 */}
+              <p className="text-xs text-[#5b5b5b]">
+                이메일 한 번만 남기시면, 새 프로그램 소식을 가장 먼저 전해드려요.
               </p>
 
-              <p className="text-[11px] leading-relaxed text-[#777]">
-                * 수집 및 보관 항목: 이메일 주소 · 수집 목적: 프로그램 소식 및 안내 발송 · 보유 및 이용 기간: 구독 해지 요청 시까지
-              </p>
-
+              {/* 결과/오류 메시지 */}
               <div
                 className={cn(
                   "rounded-md px-4 py-2 text-xs",
@@ -299,13 +261,10 @@ function HaeumHomePage(): JSX.Element {
                 {formMessage}
               </div>
 
-              {!subscriptionEndpoint && (
-                <div className="rounded-md border border-dashed border-[#317873]/30 bg-[#f9f7f2] px-4 py-3 text-[11px] text-[#555]">
-                  VITE_SUBSCRIPTION_ENDPOINT 환경 변수가 비어 있어 제출할 수 없습니다. Mailchimp 임베드 코드에서 제공된
-                  <strong> action URL</strong> 전체를 환경 변수에 설정한 뒤 다시 시도해주세요.
-                </div>
-              )}
-            </form>
+              <p className="text-[11px] leading-relaxed text-[#777]">
+                * 수집 항목: 이메일 주소 · 수집 목적: 프로그램 소식 및 안내 발송 · 보유 기간: 구독 해지 또는 삭제 요청 시까지
+              </p>
+            </div>
           </section>
 
           <Separator className="my-10" />
