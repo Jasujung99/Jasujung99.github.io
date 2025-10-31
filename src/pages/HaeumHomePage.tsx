@@ -12,10 +12,25 @@ function HaeumHomePage(): JSX.Element {
   const [formStatus, setFormStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [formMessage, setFormMessage] = useState<string | null>(null);
 
-  const subscriptionEndpoint = (
-    import.meta.env.VITE_SUBSCRIPTION_ENDPOINT ??
-    "https://send.pageclip.co/sBoFSNC6F9AuzNH0c1Fs5YBjtjOb5mkA"
-  ).trim();
+  const subscriptionEndpoint = "https://gmail.us16.list-manage.com/subscribe/post?u=97b661456e07809cbfeeb4342&id=7470798e2b&f_id=00cec2e1f0";
+
+  const isMailchimp = /list-manage\.com\/subscribe\/post/i.test(subscriptionEndpoint);
+  const emailFieldName = isMailchimp ? "EMAIL" : "email";
+
+  // Derive Mailchimp anti-bot field name from action URL (b_<UID>_<LIST_ID>)
+  let antiBotFieldName: string | undefined = undefined;
+  if (isMailchimp) {
+    try {
+      const url = new URL(subscriptionEndpoint);
+      const uid = url.searchParams.get("u");
+      const listId = url.searchParams.get("id");
+      if (uid && listId) {
+        antiBotFieldName = `b_${uid}_${listId}`;
+      }
+    } catch {
+      // ignore URL parse errors
+    }
+  }
 
   useEffect(() => {
     const timer = window.setTimeout(() => setShowNotice(false), 4000);
@@ -172,63 +187,51 @@ function HaeumHomePage(): JSX.Element {
               네이버 예약을 통해 모임에 참여하고, 새 프로그램 소식을 받아보세요.
             </p>
             <form
-              className="pageclip-form flex flex-col gap-4 rounded-xl border border-[#317873]/10 bg-white p-6 shadow-sm"
-              onSubmit={async (event: FormEvent<HTMLFormElement>) => {
-                event.preventDefault();
-
+              className="flex flex-col gap-4 rounded-xl border border-[#317873]/10 bg-white p-6 shadow-sm"
+              action={subscriptionEndpoint || undefined}
+              method="post"
+              target="_blank"
+              onSubmit={(event) => {
+                // 기본 제출 흐름 사용(Pageclip/Mailchimp 등). 필요한 사전 검증만 수행.
                 if (!subscriptionEndpoint) {
+                  event.preventDefault();
                   setFormStatus("error");
                   setFormMessage(
                     "제출 경로가 설정되지 않았습니다. VITE_SUBSCRIPTION_ENDPOINT 값을 확인해주세요."
                   );
                   return;
                 }
-
                 if (!consent) {
+                  event.preventDefault();
                   setFormStatus("error");
                   setFormMessage("소식 받기를 위해 개인정보 수집 및 이용에 동의해주세요.");
                   return;
                 }
-
+                // Mailchimp 등 일반 POST의 경우에만 로컬 로딩 상태 표시
                 setFormStatus("submitting");
                 setFormMessage(null);
-
-                try {
-                  const formData = new FormData();
-                  formData.append("email", email.trim());
-                  formData.append("privacyConsent", "accepted");
-                  formData.append("source", "haeum-homepage");
-
-                  const response = await fetch(subscriptionEndpoint, {
-                    method: "POST",
-                    body: formData,
-                    headers: { Accept: "application/json" },
-                    mode: "cors",
-                  });
-
-                  if (!response.ok) {
-                    throw new Error(`${response.status} ${response.statusText}`);
-                  }
-
-                  setFormStatus("success");
-                  setFormMessage("구독 신청이 완료되었습니다. 곧 소식으로 찾아뵐게요!");
-                  setEmail("");
-                  setConsent(false);
-                  window.setTimeout(() => {
-                    setFormStatus("idle");
-                    setFormMessage(null);
-                  }, 6000);
-                } catch (error) {
-                  console.error("subscription error", error);
-                  setFormStatus("error");
-                  setFormMessage("제출 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
-                }
               }}
             >
               <div className="flex flex-col gap-4 md:flex-row">
+                {/* Hidden fields for Mailchimp tracking and anti-bot */}
+                {isMailchimp && (
+                  <>
+                    <input type="hidden" name="SOURCE" value="haeum-homepage" />
+                    {antiBotFieldName && (
+                      <input
+                        type="text"
+                        name={antiBotFieldName}
+                        tabIndex={-1}
+                        defaultValue=""
+                        style={{ position: "absolute", left: "-5000px" }}
+                        aria-hidden="true"
+                      />
+                    )}
+                  </>
+                )}
                 <Input
                   type="email"
-                  name="email"
+                  name={emailFieldName}
                   placeholder="이메일 주소 입력"
                   autoComplete="email"
                   className="w-full md:w-1/2"
@@ -245,7 +248,9 @@ function HaeumHomePage(): JSX.Element {
                     email.trim().length === 0 ||
                     !consent
                   }
-                  className="bg-[#317873] text-white hover:bg-[#285f5b] disabled:cursor-not-allowed disabled:opacity-60"
+                  className={cn(
+                    "bg-[#317873] text-white hover:bg-[#285f5b] disabled:cursor-not-allowed disabled:opacity-60"
+                  )}
                 >
                   {formStatus === "submitting" ? (
                     <span className="flex items-center gap-2 text-sm">
@@ -296,8 +301,8 @@ function HaeumHomePage(): JSX.Element {
 
               {!subscriptionEndpoint && (
                 <div className="rounded-md border border-dashed border-[#317873]/30 bg-[#f9f7f2] px-4 py-3 text-[11px] text-[#555]">
-                  VITE_SUBSCRIPTION_ENDPOINT 환경 변수가 설정되지 않아 제출 내용이 저장되지 않습니다. Pageclip에서 발급한 폼
-                  액션 URL을 환경 변수로 설정한 뒤 다시 시도해주세요.
+                  VITE_SUBSCRIPTION_ENDPOINT 환경 변수가 비어 있어 제출할 수 없습니다. Mailchimp 임베드 코드에서 제공된
+                  <strong> action URL</strong> 전체를 환경 변수에 설정한 뒤 다시 시도해주세요.
                 </div>
               )}
             </form>
