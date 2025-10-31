@@ -196,7 +196,7 @@ function HaeumHomePage(): JSX.Element {
           <section id="contact" className="py-16">
             <h3 className="mb-4 text-2xl font-semibold text-[#4a5d52]">문의 및 참여</h3>
             <p className="mb-4 text-sm text-[#444]">
-              네이버 예약을 통해 모임에 참여하고, 새 프로그램 소식을 받아보세요.
+              해움한국어 활동에 관심이 가시나요? 이메일 주소를 남기시면 유용한 소식 먼저 전달할게요!
             </p>
             {/* 구독 영역: 인라인 입력 + 버튼 → 서버리스로 전송 */}
             <div className="flex flex-col gap-3 rounded-xl border border-[#317873]/10 bg-white p-6 shadow-sm">
@@ -267,11 +267,6 @@ function HaeumHomePage(): JSX.Element {
                 </Button>
               </form>
 
-              {/* 안내 문구: 입력 바로 아래 */}
-              <p className="text-xs text-[#5b5b5b]">
-                이메일 한 번만 남기시면, 새 프로그램 소식을 가장 먼저 전해드려요.
-              </p>
-
               {/* 결과/오류 메시지 */}
               <div
                 className={cn(
@@ -287,6 +282,9 @@ function HaeumHomePage(): JSX.Element {
                 {formMessage}
               </div>
 
+              <p className="text-[11px] leading-relaxed text-[#777]">
+                ※ 이메일 입력 및 제출 시 개인 정보 수집에 동의한 것으로 간주합니다.
+              </p>
               <p className="text-[11px] leading-relaxed text-[#777]">
                 * 수집 항목: 이메일 주소 · 수집 목적: 프로그램 소식 및 안내 발송 · 보유 기간: 구독 해지 또는 삭제 요청 시까지
               </p>
