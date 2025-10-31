@@ -70,8 +70,8 @@ export default function AnimatedBackground({ className = "" }: AnimatedBackgroun
       }
       if (sunRef.current) {
         sunRef.current.style.willChange = 'opacity';
-        // 태양은 기본도 보이게: 0.25 → 최대 0.50 범위
-        sunRef.current.style.opacity = String(Math.min(0.5, 0.25 + 0.25 * current));
+        // 태양은 기본도 보이게: 0.35 → 최대 0.60 범위
+        sunRef.current.style.opacity = String(Math.min(0.6, 0.35 + 0.25 * current));
       }
 
       if (Math.abs(target - current) > 0.001) {
@@ -119,14 +119,45 @@ export default function AnimatedBackground({ className = "" }: AnimatedBackgroun
         ref={sunRef}
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full z-0"
         style={{
-          width: "58vmin",
-          height: "58vmin",
+          width: "62vmin",
+          height: "62vmin",
           background:
-            "radial-gradient(closest-side, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.28) 60%, rgba(255,255,255,0.12) 80%, transparent 100%)",
-          filter: "blur(14px)",
-          opacity: 0, // parallax로 서서히 드러남
+            "radial-gradient(closest-side, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.34) 58%, rgba(255,255,255,0.16) 78%, transparent 100%)",
+          filter: "blur(16px)",
+          opacity: 0, // parallax로 서서히 드러남 (기본은 useEffect에서 0.35로 시작)
         }}
       />
+
+      {/* 중앙 클러스터: 중심 부근에 부유하는 도트 그룹 (부드러운 드리프트) */}
+      <div className="absolute left-1/2 top-1/2 h-0 w-0 -translate-x-1/2 -translate-y-1/2">
+        {Array.from({ length: 18 }).map((_, i) => {
+          const r = uhash(5000 + i);
+          const angle = r * Math.PI * 2;
+          const dist = 40 + r * 110; // 중심에서 40~150px 범위
+          const x = Math.cos(angle) * dist;
+          const y = Math.sin(angle) * dist;
+          const size = Math.round(28 * (0.85 + 0.3 * r));
+          const alpha = clamp(0.18 + (r - 0.5) * 0.12, 0.08, 0.28);
+          const delay = Math.round(r * 3000);
+          const dur = 20000 + Math.round(r * 10000);
+          return (
+            <span
+              key={`cluster-${i}`}
+              className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
+              style={{
+                left: `${x}px`,
+                top: `${y}px`,
+                width: `${size}px`,
+                height: `${size}px`,
+                background: `rgba(255,255,255,${alpha})`,
+                animation: `float ${dur}ms linear infinite`,
+                animationDelay: `${delay}ms`,
+                filter: r > 0.7 ? `blur(1.5px)` : undefined,
+              }}
+            />
+          );
+        })}
+      </div>
 
       {/* 공전 링: 중심 기준으로 링을 여러 개 배치 (시계방향, 느리게) */}
       <div ref={orbitRef} className="absolute left-1/2 top-1/2 h-0 w-0 -translate-x-1/2 -translate-y-1/2">
