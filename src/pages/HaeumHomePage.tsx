@@ -68,12 +68,12 @@ function HaeumHomePage(): JSX.Element {
         <main className="mx-auto max-w-6xl px-4 md:px-8">
           <section className="py-20 text-center">
             <h2 className="mb-4 text-3xl font-semibold text-[#4a5d52]">
-              언어로 만나는 따뜻한 공동체, 꿈꾸는 공간
+              언어로 만나는 따뜻한 공동체, 꿈꾸는 곳간
             </h2>
             <p className="mx-auto max-w-2xl text-lg text-[#5b5b5b]">
-              낭독, 토론, 소통을 통해 서로를 이해하고, 성찰하는 공간.
+              인문학, 예술, 소통을 통해 서로를 이해하고, 마주하는 공간.
               <br />
-              해움한국어는 사람과 마음을 잇는 배움의 마당입니다.
+              해움한국어는 사람과 마음을 잇는 열린 마당입니다.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
               <a
@@ -128,7 +128,7 @@ function HaeumHomePage(): JSX.Element {
                 <CardContent className="p-6">
                   <h4 className="mb-2 text-lg font-semibold">우리 철학</h4>
                   <p className="text-sm text-[#444]">
-                    해움한국어는 언어 교육을 넘어, 서로를 존중하고 이해하는 문화를 실천하는 공간입니다. 학문적 성찰과 정서적 교감을 함께 나눕니다.
+                    해움한국어는 언어 교육을 넘어, 서로를 존중하고 이해하는 문화를 실천하는 곳입니다. 지적인 교류와 문화적 소통을 꿈꿉니다.
                   </p>
                 </CardContent>
               </Card>
@@ -136,7 +136,7 @@ function HaeumHomePage(): JSX.Element {
                 <CardContent className="p-6">
                   <h4 className="mb-2 text-lg font-semibold">운영자 이력</h4>
                   <p className="text-sm text-[#444]">
-                    미디어·심리학 기반의 교육 전공, 미술치료·독서토론 운영 경험을 바탕으로 참여자의 성장을 도우며, 공감과 나눔을 중심에 둡니다.
+                    미디어·심리학 기반의 교육 전공, 미술치료·독서토론 운영 경험을 바탕으로 참여자의 통찰을 북돋우며, 공감과 나눔에 귀를 엽니다.
                   </p>
                 </CardContent>
               </Card>
@@ -152,19 +152,19 @@ function HaeumHomePage(): JSX.Element {
               <Card className="bg-white">
                 <CardContent className="p-5">
                   <h5 className="mb-1 font-bold">한국어 기초·문법</h5>
-                  <p>한글·기초 문형부터 탄탄히. 학습 초보자 맞춤.</p>
+                  <p>한글과 기본 문장 구조를 기초부터 탄탄히 다져, 학습 초보자에게 맞춤형으로 제공합니다.</p>
                 </CardContent>
               </Card>
               <Card className="bg-white">
                 <CardContent className="p-5">
                   <h5 className="mb-1 font-bold">고급 회화·심화</h5>
-                  <p>주제 토론·발표·작문 등 고급 표현 훈련.</p>
+                  <p>다양한 주제 토론, 발표 및 작문 등을 통해 고급 표현을 집중적으로 연습합니다.</p>
                 </CardContent>
               </Card>
               <Card className="bg-white">
                 <CardContent className="p-5">
                   <h5 className="mb-1 font-bold">TOPIK I/II 집중 대비</h5>
-                  <p>파트별 전략+실전 모의. 단기 목표 달성형 커리큘럼.</p>
+                  <p>각 파트별 효과적인 전략과 실전 모의 고사를 통해 단기 목표 달성에 최적화된 커리큘럼을 운영합니다.</p>
                 </CardContent>
               </Card>
             </div>
@@ -175,19 +175,19 @@ function HaeumHomePage(): JSX.Element {
               <Card className="bg-white">
                 <CardContent className="p-5">
                   <h5 className="mb-1 font-bold">사회통합프로그램(KIIP)·비자/국적</h5>
-                  <p>KIIP 단계 운용, 귀화·영주(종합·면접) 대비 전문.</p>
+                  <p>KIIP 프로그램 연계, 귀화 및 영주권을 위한 종합·면접 준비까지 전문적으로 지원합니다.</p>
                 </CardContent>
               </Card>
               <Card className="bg-white">
                 <CardContent className="p-5">
                   <h5 className="mb-1 font-bold">생활한국어·언어교환</h5>
-                  <p>직장/생활 밀착 표현, 파트너 매칭으로 실전 감각 강화.</p>
+                  <p>직장생활과 일상 생활에 필요한 표현과 함께, 언어 교환 활동으로 실전 감각을 강화합니다.</p>
                 </CardContent>
               </Card>
               <Card className="bg-white">
                 <CardContent className="p-5">
                   <h5 className="mb-1 font-bold">문화체험·로컬 허브</h5>
-                  <p>대전·청주·공주 워크숍·인문예술모임·동아리 대관.</p>
+                  <p>충청권을 아우르며 워크숍, 인문예술 모임, 동아리 공간 대관을 통한 지역 사회 문화 체험의 기회를 제공합니다.</p>
                 </CardContent>
               </Card>
             </div>
@@ -196,7 +196,7 @@ function HaeumHomePage(): JSX.Element {
           <section id="contact" className="py-16">
             <h3 className="mb-4 text-2xl font-semibold text-[#4a5d52]">문의 및 참여</h3>
             <p className="mb-4 text-sm text-[#444]">
-              해움한국어 활동에 관심이 가시나요? 이메일 주소를 남기시면 유용한 소식 먼저 전달할게요!
+              관심과 성원 감사합니다. 이메일을 통해 유용한 소식 가장 먼저 전달할게요.
             </p>
             {/* 구독 영역: 인라인 입력 + 버튼 → 서버리스로 전송 */}
             <div className="flex flex-col gap-3 rounded-xl border border-[#317873]/10 bg-white p-6 shadow-sm">
