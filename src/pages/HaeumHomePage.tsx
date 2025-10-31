@@ -145,23 +145,49 @@ function HaeumHomePage(): JSX.Element {
 
           <section id="programs" className="py-16">
             <h3 className="mb-6 text-2xl font-semibold text-[#4a5d52]">프로그램 안내</h3>
+
+            {/* 교육/시험 대비 */}
+            <h4 className="mb-3 text-lg font-semibold text-[#4a5d52]">교육/시험 대비</h4>
             <div className="grid gap-4 text-sm md:grid-cols-3">
               <Card className="bg-white">
                 <CardContent className="p-5">
-                  <h4 className="mb-1 font-bold">온라인 수업</h4>
-                  <p>실시간 강의 / 온라인 독서 모임 / 글로벌 언어 교류</p>
+                  <h5 className="mb-1 font-bold">한국어 기초·문법</h5>
+                  <p>한글·기초 문형부터 탄탄히. 학습 초보자 맞춤.</p>
                 </CardContent>
               </Card>
               <Card className="bg-white">
                 <CardContent className="p-5">
-                  <h4 className="mb-1 font-bold">오프라인 활동</h4>
-                  <p>서울 중심 대면 수업 / 정기 낭독회 / 인문 워크숍</p>
+                  <h5 className="mb-1 font-bold">고급 회화·심화</h5>
+                  <p>주제 토론·발표·작문 등 고급 표현 훈련.</p>
                 </CardContent>
               </Card>
               <Card className="bg-white">
                 <CardContent className="p-5">
-                  <h4 className="mb-1 font-bold">출강 및 협업</h4>
-                  <p>학교·기관 외부 강의 / 맞춤형 커리큘럼 설계</p>
+                  <h5 className="mb-1 font-bold">TOPIK I/II 집중 대비</h5>
+                  <p>파트별 전략+실전 모의. 단기 목표 달성형 커리큘럼.</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* 정착/문화/커뮤니티 */}
+            <h4 className="mt-8 mb-3 text-lg font-semibold text-[#4a5d52]">정착/문화/커뮤니티</h4>
+            <div className="grid gap-4 text-sm md:grid-cols-3">
+              <Card className="bg-white">
+                <CardContent className="p-5">
+                  <h5 className="mb-1 font-bold">사회통합프로그램(KIIP)·비자/국적</h5>
+                  <p>KIIP 단계 운용, 귀화·영주(종합·면접) 대비 전문.</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-white">
+                <CardContent className="p-5">
+                  <h5 className="mb-1 font-bold">생활한국어·언어교환</h5>
+                  <p>직장/생활 밀착 표현, 파트너 매칭으로 실전 감각 강화.</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-white">
+                <CardContent className="p-5">
+                  <h5 className="mb-1 font-bold">문화체험·로컬 허브</h5>
+                  <p>대전·청주·공주 워크숍·인문예술모임·동아리 대관.</p>
                 </CardContent>
               </Card>
             </div>
