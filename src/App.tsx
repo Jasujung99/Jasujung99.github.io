@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import HaeumHomePage from "@/pages/HaeumHomePage";
 import RoaLoadingPage from "@/pages/RoaLoadingPage";
+import DocBot from "@/components/DocBot";
 
 function App(): JSX.Element {
   const [hash, setHash] = useState<string>(window.location.hash || "#/");
@@ -13,15 +14,25 @@ function App(): JSX.Element {
 
   const route = hash.replace(/^#/, "");
 
+  let page: JSX.Element;
   switch (route) {
     case "/roa":
     case "/loading": // backward compatibility
-      return <RoaLoadingPage />;
+      page = <RoaLoadingPage />;
+      break;
     case "/":
     case "":
     default:
-      return <HaeumHomePage />;
+      page = <HaeumHomePage />;
+      break;
   }
+
+  return (
+    <>
+      {page}
+      <DocBot />
+    </>
+  );
 }
 
 export default App;

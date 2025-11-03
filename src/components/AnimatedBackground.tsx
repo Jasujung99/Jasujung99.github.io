@@ -49,17 +49,18 @@ export default function AnimatedBackground({ className = "" }: AnimatedBackgroun
     window.addEventListener('resize', onResize, { passive: true } as AddEventListenerOptions);
     return () => window.removeEventListener('resize', onResize as any);
   }, []);
-  const isNarrow = vw < 900; // 800~900px 기준으로 스위치
+  const isOrbitDisabled = vw < 1024; // 1024px 미만에서는 공전 링만 비활성화
+  const isNarrow = vw < 1024; // 1024px 기준으로 클러스터 파라미터도 조정(요청사항 반영)
 
-  // Cluster (free-flow dots) responsive parameters
-  const clusterCount = isNarrow ? 14 : 30; // narrow: fewer dots
-  const sizeMin = isNarrow ? 10 : 18;
-  const sizeMax = isNarrow ? 36 : 72; // narrow: smaller maximum size
-  const alphaMin = isNarrow ? 0.05 : 0.06;
-  const alphaMax = isNarrow ? 0.12 : 0.18; // narrow: more subtle
-  const blurMax = isNarrow ? 1 : 2;
-  const xBandPx = isNarrow ? Math.max(120, Math.round(vw * 0.18)) : 160; // narrow: slightly wider relative band to spread
-  const delayMax = isNarrow ? 5 : 8;
+  // Cluster (free-flow dots) responsive parameters (≤1024px: 살짝 부각)
+  const clusterCount = isNarrow ? 18 : 30; // 좁은 화면에서도 적당한 존재감 유지
+  const sizeMin = isNarrow ? 14 : 18;
+  const sizeMax = isNarrow ? 54 : 72; // 약간 크게(과하지 않게)
+  const alphaMin = isNarrow ? 0.08 : 0.06; // 살짝 더 선명
+  const alphaMax = isNarrow ? 0.20 : 0.18; // 상한도 조금 상향
+  const blurMax = isNarrow ? 1 : 2; // 좁을수록 더 또렷하게
+  const xBandPx = isNarrow ? Math.max(140, Math.round(vw * 0.22)) : 160; // 좁을수록 가로 분산 확대
+  const delayMax = isNarrow ? 6 : 8;
 
   // Flow duration pools (weighted). Narrow screens favor longer cycles to reduce visual noise
   const flowDurationPool: number[] = isNarrow
@@ -78,8 +79,8 @@ export default function AnimatedBackground({ className = "" }: AnimatedBackgroun
         96, 96, 96, 96, 96, 96,
       ];
 
-  // Orbit ring config responsive — disable on narrow viewports (<900px)
-  const rings = isNarrow
+  // Orbit ring config — disable orbit rings below 1024px; keep central vertical-flow dots alive
+  const rings = isOrbitDisabled
     ? []
     : [
         { radius: '24vw', count: 24, baseSize: 40, baseAlpha: 0.18, anim: 'motion-safe:animate-orbitCW120' },

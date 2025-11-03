@@ -115,10 +115,22 @@ function HaeumHomePage(): JSX.Element {
         <section className="relative overflow-hidden py-20 text-center">
             <AnimatedBackground />
             <div className="relative z-10 mx-auto max-w-6xl px-4 md:px-8">
-              <h2 className="mb-4 text-3xl font-semibold text-[#4a5d52]">
+              <h2
+                className="mb-4 font-semibold text-[#4a5d52]"
+                style={{
+                  fontSize: "clamp(22px, 3.2vw, 34px)",
+                  lineHeight: "1.25",
+                }}
+              >
                 언어로 만나는 따뜻한 공동체, 꿈꾸는 곳간
               </h2>
-              <p className="mx-auto max-w-2xl text-lg text-[#5b5b5b]">
+              <p
+                className="mx-auto max-w-2xl text-[#5b5b5b]"
+                style={{
+                  fontSize: "clamp(15px, 2.2vw, 18px)",
+                  lineHeight: "1.6",
+                }}
+              >
                 인문학, 예술, 소통을 통해 서로를 이해하고, 마주하는 공간.
                 <br />
                 해움한국어는 사람과 마음을 잇는 열린 마당입니다.
