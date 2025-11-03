@@ -93,7 +93,7 @@ a {
 
 /* Handwriting font utility for Roa page */
 .font-handwrite {
-  font-family: "Gowun Dodum", "Gamja Flower", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-family: "Gamja Flower", "Gowun Dodum", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   font-synthesis-weight: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

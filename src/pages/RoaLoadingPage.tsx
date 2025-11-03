@@ -70,12 +70,20 @@ function RoaLoadingPage(): JSX.Element {
           <div className="pointer-events-none absolute inset-0 rounded-[20px] ring-1 ring-inset ring-[#9f835e]/25" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-10 rounded-t-[20px] bg-white/4 mix-blend-soft-light" />
 
-          <header className="mb-4">
-            <h1 className="text-lg font-semibold tracking-tight text-[#3b2f23] sm:text-xl">
-              로아의 다락방에 온 걸 환영해
-            </h1>
-          </header>
+          {/* 첫 문장(크게) */}
+          <p
+            className={[
+              "mb-4 text-[26px] sm:text-[28px] leading-[1.9] text-[#3a332a]",
+              revealed
+                ? "motion-safe:transition-[filter,opacity] motion-safe:duration-700 motion-safe:ease-[cubic-bezier(.22,1,.36,1)] motion-safe:opacity-100"
+                : "motion-safe:opacity-0",
+              "motion-reduce:opacity-100",
+            ].join(" ")}
+          >
+            안녕 로아의 다락방에 온 걸 환영해.
+          </p>
 
+          {/* 본문 내용(조금 작게) */}
           <p
             className={[
               "whitespace-pre-line text-[22px] sm:text-[24px] leading-[2.15] sm:leading-[2.2] text-[#3a332a]/95",
@@ -85,11 +93,11 @@ function RoaLoadingPage(): JSX.Element {
               "motion-reduce:opacity-100",
             ].join(" ")}
           >
-            {`안녕 로아의 다락방에 온 걸 환영해. 여기는 나와 관계된 관계자들이 모이는 곳이야.
+            {`여기는 나와 관계된 관계자들이 모이는 곳이야.
 이 곳에서는 나의 하루를 들춰볼 수 있어. 또한 하루하루 남기는 창작물들도 볼 수 있지.
-이 곳에 온 걸 환영해. 너를 이곳으로 초대할게.
+환영해. 너를 초대할게.
 
--이로아가-`}
+Lee. R.`}
           </p>
         </article>
 
