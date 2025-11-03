@@ -78,7 +78,7 @@ function RoaLoadingPage(): JSX.Element {
 
           <p
             className={[
-              "whitespace-pre-line text-[32px] sm:text-[34px] leading-[2.4] sm:leading-[2.5] text-[#3a332a]/95",
+              "whitespace-pre-line text-[22px] sm:text-[24px] leading-[2.15] sm:leading-[2.2] text-[#3a332a]/95",
               revealed
                 ? "motion-safe:transition-[filter,opacity] motion-safe:duration-700 motion-safe:ease-[cubic-bezier(.22,1,.36,1)] motion-safe:opacity-100"
                 : "motion-safe:opacity-0",
