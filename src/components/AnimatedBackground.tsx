@@ -30,11 +30,7 @@ const X_BAND_PX = 160; // 중심 기준 좌우 밴드 폭
 export default function AnimatedBackground({ className = "" }: AnimatedBackgroundProps) {
   // 링 설정: 반지름은 vw 단위(풀블리드 유지), 간격(간섭)을 줄이기 위해 개수 증가
   // baseSize/alpha는 도트별 지터를 적용하여 밝기/크기 변화를 줌
-  const rings = [
-    { radius: "24vw", count: 24, baseSize: 40, baseAlpha: 0.18, anim: "motion-safe:animate-orbitCW120" },
-    { radius: "36vw", count: 32, baseSize: 46, baseAlpha: 0.16, anim: "motion-safe:animate-orbitCW150" },
-    { radius: "50vw", count: 40, baseSize: 52, baseAlpha: 0.14, anim: "motion-safe:animate-orbitCW240" },
-  ];
+  // rings: defined responsively below
 
   // 유틸: 0..1 난수 유사값(인덱스 기반 결정적), clamp
   const uhash = (n: number) => Math.abs(Math.sin(n * 12.9898) * 43758.5453) % 1;
@@ -45,6 +41,51 @@ export default function AnimatedBackground({ className = "" }: AnimatedBackgroun
   const orbitRef = useRef<HTMLDivElement | null>(null);
   const sunRef = useRef<HTMLDivElement | null>(null);
   const clusterRef = useRef<HTMLDivElement | null>(null);
+
+  // Responsive config: adjust density/size/spread around 900px to avoid overlap on narrow screens
+  const [vw, setVw] = React.useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1200);
+  useEffect(() => {
+    const onResize = () => setVw(window.innerWidth);
+    window.addEventListener('resize', onResize, { passive: true } as AddEventListenerOptions);
+    return () => window.removeEventListener('resize', onResize as any);
+  }, []);
+  const isNarrow = vw < 900; // 800~900px 기준으로 스위치
+
+  // Cluster (free-flow dots) responsive parameters
+  const clusterCount = isNarrow ? 14 : 30; // narrow: fewer dots
+  const sizeMin = isNarrow ? 10 : 18;
+  const sizeMax = isNarrow ? 36 : 72; // narrow: smaller maximum size
+  const alphaMin = isNarrow ? 0.05 : 0.06;
+  const alphaMax = isNarrow ? 0.12 : 0.18; // narrow: more subtle
+  const blurMax = isNarrow ? 1 : 2;
+  const xBandPx = isNarrow ? Math.max(120, Math.round(vw * 0.18)) : 160; // narrow: slightly wider relative band to spread
+  const delayMax = isNarrow ? 5 : 8;
+
+  // Flow duration pools (weighted). Narrow screens favor longer cycles to reduce visual noise
+  const flowDurationPool: number[] = isNarrow
+    ? [
+        48, 48,
+        60, 60, 60,
+        72, 72, 72,
+        84, 84,
+      ]
+    : [
+        36,
+        48, 48,
+        60, 60, 60,
+        72, 72, 72, 72,
+        84, 84, 84, 84, 84,
+        96, 96, 96, 96, 96, 96,
+      ];
+
+  // Orbit ring config responsive — disable on narrow viewports (<900px)
+  const rings = isNarrow
+    ? []
+    : [
+        { radius: '24vw', count: 24, baseSize: 40, baseAlpha: 0.18, anim: 'motion-safe:animate-orbitCW120' },
+        { radius: '36vw', count: 32, baseSize: 46, baseAlpha: 0.16, anim: 'motion-safe:animate-orbitCW150' },
+        { radius: '50vw', count: 40, baseSize: 52, baseAlpha: 0.14, anim: 'motion-safe:animate-orbitCW240' },
+      ];
 
   useEffect(() => {
     const reduce = typeof window !== "undefined" && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -119,15 +160,6 @@ export default function AnimatedBackground({ className = "" }: AnimatedBackgroun
     };
   }, []);
 
-  // 수직 플로우 전용 duration 풀(긴 주기 가중치↑)
-  const flowDurationPool: number[] = [
-    36, // weight 1
-    48, 48, // weight 2
-    60, 60, 60, // weight 3
-    72, 72, 72, 72, // weight 4
-    84, 84, 84, 84, 84, // weight 5
-    96, 96, 96, 96, 96, 96, // weight 6
-  ];
 
   return (
     <div
@@ -166,7 +198,7 @@ export default function AnimatedBackground({ className = "" }: AnimatedBackgroun
 
       {/* 중앙 클러스터: 중심 부근에 부유하는 도트 그룹 (Up/Down 교차 bobbing) */}
       <div ref={clusterRef} className="absolute left-1/2 top-1/2 h-0 w-0 -translate-x-1/2 -translate-y-1/2">
-        {Array.from({ length: CLUSTER_COUNT }).map((_, i) => {
+        {Array.from({ length: clusterCount }).map((_, i) => {
           const r1 = uhash(5000 + i); // 위치/크기
           const r2 = uhash(7000 + i); // 지터/알파
           const r3 = uhash(9000 + i); // 애니 방향/블러
@@ -175,25 +207,25 @@ export default function AnimatedBackground({ className = "" }: AnimatedBackgroun
           const r6 = uhash(15000 + i); // 코호트(weave 여부)
 
           // 수직 플로우 전용: X는 중앙 밴드 내에서 고정, Y는 키프레임으로 오프스크린↔오프스크린 이동
-          const x = Math.round((uhash(16000 + i) * 2 - 1) * X_BAND_PX);
+          const x = Math.round((uhash(16000 + i) * 2 - 1) * xBandPx);
 
           // 크기: 18~72px 범위 + ±25% 지터 (클램프)
-          const baseSize = SIZE_MIN + r1 * (SIZE_MAX - SIZE_MIN);
+          const baseSize = sizeMin + r1 * (sizeMax - sizeMin);
           const jitter = 0.75 + 0.5 * r2; // 0.75~1.25
-          const size = Math.round(clamp(baseSize * jitter, SIZE_MIN, SIZE_MAX));
+          const size = Math.round(clamp(baseSize * jitter, sizeMin, sizeMax));
 
           // 알파: 더 은은한 범위 0.06~0.18
-          const alpha = clamp(ALPHA_MIN + (r3 * (ALPHA_MAX - ALPHA_MIN)), ALPHA_MIN, ALPHA_MAX);
+          const alpha = clamp(alphaMin + (r3 * (alphaMax - alphaMin)), alphaMin, alphaMax);
 
           // blur: 0~2px
-          const blurPx = Math.round(BLUR_MAX * r3);
+          const blurPx = Math.round(blurMax * r3);
 
           // duration: 긴 주기 가중치 풀에서 선택
           const poolIdx = Math.floor(r1 * flowDurationPool.length) % flowDurationPool.length;
           const duration = flowDurationPool[poolIdx] as 36|48|60|72|84|96;
 
           // delay: 0~8s (넓은 분산)
-          const delaySec = +(DELAY_MAX * r4).toFixed(2);
+          const delaySec = +(delayMax * r4).toFixed(2);
 
           // 방향: 절반은 위→아래(flowDown), 절반은 아래→위(flowUp)
           const goDown = r6 < 0.5;

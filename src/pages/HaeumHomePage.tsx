@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 import AnimatedBackground from "@/components/AnimatedBackground";
 
 function HaeumHomePage(): JSX.Element {
-  const [showNotice, setShowNotice] = useState(true);
   const [email, setEmail] = useState("");
   const [formStatus, setFormStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [formMessage, setFormMessage] = useState<string | null>(null);
@@ -20,10 +19,6 @@ function HaeumHomePage(): JSX.Element {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
   }
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => setShowNotice(false), 4000);
-    return () => window.clearTimeout(timer);
-  }, []);
 
   // 프로그램 카드 리빌(프린트처럼 아래→위): IntersectionObserver + 스태거
   useEffect(() => {
@@ -97,29 +92,8 @@ function HaeumHomePage(): JSX.Element {
 
   return (
     <div className="relative min-h-screen bg-[#fdfaf6] font-sans text-[#2f2f2f]">
-      {showNotice && (
-        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/30 px-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-xl">
-            <p className="text-sm leading-relaxed">
-              웹사이트 개발 중으로 보여지는 내용은 실제와 다소 상이할 수 있습니다.
-            </p>
-            <Button
-              className="mt-4 w-full bg-[#317873] text-white hover:bg-[#285f5b]"
-              onClick={() => setShowNotice(false)}
-            >
-              확인
-            </Button>
-          </div>
-        </div>
-      )}
 
-      <div
-        className={cn(
-          "relative min-h-screen transition-all duration-300",
-          showNotice ? "pointer-events-none blur-sm" : ""
-        )}
-        aria-hidden={showNotice}
-      >
+      <div className={cn("relative min-h-screen transition-all duration-300")}>
         <header className="sticky top-0 z-10 bg-white p-6 shadow-sm">
           <div className="mx-auto flex max-w-6xl items-center justify-between">
             <h1 className="text-xl font-bold text-[#4a5d52]">해움한국어</h1>
