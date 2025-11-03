@@ -11,6 +11,7 @@ function HaeumHomePage(): JSX.Element {
   const [email, setEmail] = useState("");
   const [formStatus, setFormStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [formMessage, setFormMessage] = useState<string | null>(null);
+  const [showRoaIcon, setShowRoaIcon] = useState(false);
 
   // Serverless backend endpoint (Cloudflare Worker)
   const subscribeApi = "https://sweet-bird-16a2.jasujung404.workers.dev/api/subscribe";
@@ -270,7 +271,46 @@ function HaeumHomePage(): JSX.Element {
           </section>
 
           <section id="contact" className="py-16">
-            <h3 className="mb-4 text-2xl font-semibold text-[#4a5d52] reveal-contact opacity-0 will-change-transform">문의 및 참여</h3>
+            <h3 className="mb-4 text-2xl font-semibold text-[#4a5d52] reveal-contact opacity-0 will-change-transform">
+              문의 및 {" "}
+              <span
+                className="relative inline-block cursor-pointer select-none"
+                onClick={() => {
+                  try {
+                    setShowRoaIcon(true);
+                    // 자동 숨김(안 누르고 지나가도 화면을 과점유하지 않도록)
+                    window.setTimeout(() => setShowRoaIcon(false), 2500);
+                  } catch {}
+                }}
+              >
+                참여
+                {/* 봉투 아이콘: 클릭 시 숨겨진 페이지로 이동 */}
+                {showRoaIcon && (
+                  <button
+                    type="button"
+                    aria-label="숨겨진 페이지로 이동"
+                    title="숨겨진 페이지로 이동"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.location.hash = "#/roa";
+                      setShowRoaIcon(false);
+                    }}
+                    className="absolute left-1/2 -translate-x-1/2 -translate-y-2 motion-reduce:translate-y-0 motion-reduce:opacity-100"
+                    style={{ top: "-1.25rem" }}
+                  >
+                    {/* 인라인 SVG (봉투) */}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      className="h-6 w-6 text-[#317873] drop-shadow-sm motion-safe:animate-revealUpSlow"
+                    >
+                      <path d="M2.25 6.75A2.25 2.25 0 0 1 4.5 4.5h15a2.25 2.25 0 0 1 2.25 2.25v10.5A2.25 2.25 0 0 1 19.5 19.5h-15a2.25 2.25 0 0 1-2.25-2.25V6.75zm2.4-.75a.75.75 0 0 0-.53 1.28l7.1 6.9a.75.75 0 0 0 1.06 0l7.1-6.9a.75.75 0 1 0-1.04-1.08L12 12.22 4.97 5.97a.75.75 0 0 0-.32-.22z" />
+                    </svg>
+                  </button>
+                )}
+              </span>
+            </h3>
             <p className="mb-4 text-sm text-[#444] reveal-contact opacity-0 will-change-transform">
               유용한 소식은 이메일을 통해 가장 먼저 전달할게요. 관심과 성원 감사합니다. 🙏
             </p>
