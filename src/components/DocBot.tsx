@@ -1,5 +1,6 @@
 import React from "react";
 import { buildIndex, search, type KBIndex } from "@/lib/docsearch";
+import { ANSWER_API_URL } from "@/lib/config";
 
 export type DocBotProps = {
   className?: string;
@@ -11,6 +12,9 @@ export default function DocBot({ className = "" }: DocBotProps): JSX.Element {
   const [index, setIndex] = React.useState<KBIndex | null>(null);
   const [q, setQ] = React.useState("");
   const [hits, setHits] = React.useState<ReturnType<typeof search>>([]);
+  const [generating, setGenerating] = React.useState(false);
+  const [answer, setAnswer] = React.useState<string | null>(null);
+  const aiAvailable = Boolean(ANSWER_API_URL);
   const panelRef = React.useRef<HTMLDivElement | null>(null);
   const inputRef = React.useRef<HTMLInputElement | null>(null);
 
@@ -55,13 +59,52 @@ export default function DocBot({ className = "" }: DocBotProps): JSX.Element {
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
 
-  function onSubmit(e?: React.FormEvent) {
+  async function generateAnswer(question: string, ctx: string[]): Promise<string | null> {
+    if (!ANSWER_API_URL) return null;
+    try {
+      const controller = new AbortController();
+      const t = setTimeout(() => controller.abort(), 15000);
+      const resp = await fetch(ANSWER_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question, context: ctx }),
+        signal: controller.signal,
+      });
+      clearTimeout(t);
+      if (!resp.ok) return null;
+      const data = await resp.json().catch(() => null);
+      if (data && data.ok && typeof data.text === "string") return data.text;
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  async function onSubmit(e?: React.FormEvent) {
     e?.preventDefault();
     if (!index) return;
     const query = q.trim();
     if (!query) return;
+    setAnswer(null);
     const res = search(query, index, 5);
     setHits(res);
+
+    if (aiAvailable) {
+      setGenerating(true);
+      // Build compact context from highlights (or fallback to section text)
+      const ctx: string[] = [];
+      for (const h of res) {
+        if (h.highlights.length > 0) {
+          ctx.push(h.highlights.join("\n"));
+        } else {
+          ctx.push(h.section.text.slice(0, 500));
+        }
+        if (ctx.join("\n").length > 1400) break; // cap ~1.4k chars to save tokens
+      }
+      const text = await generateAnswer(query, ctx.slice(0, 3));
+      if (text) setAnswer(text);
+      setGenerating(false);
+    }
   }
 
   const emptyKB = index && index.sections.length === 0;
@@ -106,9 +149,31 @@ export default function DocBot({ className = "" }: DocBotProps): JSX.Element {
                 <p className="text-xs">관리자: <code>/public/kb/manifest.json</code>에 문서를 등록해 주세요.</p>
               </div>
             )}
-            {!loading && !emptyKB && hits.length === 0 && (
-              <div className="text-gray-500">무엇이 궁금하신가요? (예: 운영 시간, 오시는 길, 프로그램, 에셋 운영, 이미지 경로)</div>
+
+            {/* AI composed answer (beta) */}
+            {!loading && !emptyKB && (generating || answer) && (
+              <div className="mb-3 rounded-md border border-[#317873]/20 bg-[#f3fbf9] p-3 text-[#285f5b]">
+                <div className="mb-1 flex items-center gap-2 text-xs font-semibold text-[#317873]">
+                  <span className="inline-flex items-center gap-1">
+                    <span className="h-2.5 w-2.5 rounded-full bg-[#317873]"></span>
+                    AI 답변
+                  </span>
+                  {generating && <span className="ml-auto inline-flex items-center gap-2 text-[11px] text-[#317873]">
+                    <span className="h-3 w-3 animate-spin rounded-full border-2 border-[#317873]/30 border-t-[#317873]" />
+                    작성 중…
+                  </span>}
+                </div>
+                {answer && <div className="whitespace-pre-line text-[13px] leading-relaxed text-[#2d4b45]">{answer}</div>}
+                {!answer && generating && <div className="text-[13px] text-[#2d4b45]">컨텍스트를 바탕으로 답변을 준비하고 있어요…</div>}
+              </div>
             )}
+
+            {/* Empty hint */}
+            {!loading && !emptyKB && hits.length === 0 && !generating && !answer && (
+              <div className="text-gray-500">무엇이 궁금하신가요? (예: 운영 시간, 오시는 길, 프로그램)</div>
+            )}
+
+            {/* Sources (highlights) */}
             {!loading && hits.length > 0 && (
               <div className="space-y-3">
                 {hits.map((h, i) => (

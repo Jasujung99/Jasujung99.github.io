@@ -57,3 +57,41 @@ React + Vite 기반 개인 사이트입니다. Tailwind CSS로 스타일링하�
 
 ## GitHub Actions
 - 현재 레포에는 Mailchimp 관련 워크플로가 포함되어 있지 않습니다. 구독 기능은 Cloudflare Worker(서버리스)로 처리합니다.
+
+
+---
+
+## DocBot + Cloudflare Workers AI (자연어 답변)
+현재 사이트의 DocBot은 기본적으로 KB(문서) 검색/발췌로 동작합니다. 더 자연스럽고 친절한 문장형 답변을 위해 Cloudflare Workers AI와 연동할 수 있습니다.
+
+### 1) 워커 배포
+- 샘플 코드: `samples/worker/answer-worker.ts`
+- 설정 예시: `samples/worker/wrangler.toml.example`
+- 절차(요약)
+  1. Cloudflare 대시보드 → Workers AI 활성화
+  2. 새 Worker 생성 후 위 소스 업로드(or wrangler 사용)
+  3. wrangler.toml에 [ai] 바인딩 추가, `vars.ALLOWED_ORIGIN`을 배포 도메인으로 설정
+  4. 배포 완료 후 발급된 URL(예: `https://<subdomain>.<name>.workers.dev`)
+
+### 2) 프런트엔드 연결
+- 빌드 시 환경변수로 API URL을 주입합니다.
+  - Vite 환경변수: `VITE_ANSWER_API_URL=https://<...>.workers.dev`
+- 런타임 구성은 `src/lib/config.ts`를 통해 불러옵니다.
+  - 우선순위: `import.meta.env.VITE_ANSWER_API_URL` → `window.__ANSWER_API__` → null
+- 설정이 없을 경우 DocBot은 기존 “발췌형”으로 자동 폴백합니다.
+
+### 3) 보안/CORS
+- 워커 `ALLOWED_ORIGIN`에 사이트 기원을 설정하세요(예: `https://haeumkorean.me`).
+- 로컬 테스트는 `*` 허용 또는 `http://localhost:5173`로 설정하세요.
+
+### 4) 사용 방법
+- 개발: `npm run dev` → 우하단 DocBot 열기 → 질문 입력
+- 프로덕션: Worker 배포 후 `VITE_ANSWER_API_URL` 설정하여 빌드/배포
+
+### 5) 고도화(선택)
+- 스트리밍 응답, Vectorize(임베딩 RAG), 캐시/레이트리밋 강화 가능
+
+## KB(문서) 구조 안내
+- 런타임 로드: `/public/kb/manifest.json`에 등록된 Markdown/TXT만 로드합니다.
+- 기본 단일 문서: `public/kb/about.md` (소개 + FAQ 통합)
+- 정리: `public/kb/assets.md`, `public/kb/faq.md`는 제거되어 더 이상 사용하지 않습니다.
