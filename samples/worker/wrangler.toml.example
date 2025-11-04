@@ -1,0 +1,19 @@
+name = "haeum-docbot-answer"
+main = "./answer-worker.ts"
+compatibility_date = "2024-11-01"
+
+[ai]
+# Enable Workers AI binding named AI
+binding = "AI"
+
+[vars]
+# Allow only your production site (or * during local testing)
+ALLOWED_ORIGIN = "https://haeumkorean.me"
+
+# Optional: set a custom route if using a custom domain
+# routes = [ { pattern = "haeumkorean.me/api/answer", script = "haeum-docbot-answer" } ]
+
+# For workers.dev (default), you'll get a URL like:
+# https://<your-subdomain>.<your-worker>.workers.dev
+# After deploy, set this URL into your frontend:
+#   VITE_ANSWER_API_URL=https://<...>.workers.dev
