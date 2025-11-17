@@ -1,6 +1,7 @@
 import React from "react";
 import { buildIndex, search, type KBIndex } from "@/lib/docsearch";
 import { ANSWER_API_URL } from "@/lib/config";
+import { getFacts, intentFromQuestion, type HaeumIntent, CONTACT } from "@/lib/facts";
 
 export type DocBotProps = {
   className?: string;
@@ -74,21 +75,37 @@ export default function DocBot({ className = "" }: DocBotProps): JSX.Element {
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
 
-  async function generateAnswer(question: string, ctx: string[]): Promise<string | null> {
+  function sanitizeAnswerText(input: string): string {
+    // 1) 제거: 메타 표현이 섞인 문장들
+    const ban = /(발췌|발췌문|제공된 발췌|컨텍스트|출처\s?(?:가|는)|모델|\bAI\b|고객센터|문의\s?게시판)/i;
+    const sentences = input.split(/(?<=[.!?]|\n)\s+/);
+    let out = sentences.filter((s) => !ban.test(s)).join(" ");
+    // 2) 보정: 잘못된 채널 표현을 실제 연락 채널로 안내
+    out = out.replace(/고객센터|문의\s?게시판/gi, `네이버 톡톡(${CONTACT.talk}) 또는 전화 ${CONTACT.PHONE}`);
+    return out.trim();
+  }
+
+  async function generateAnswer(question: string, ctx: string[], intent?: HaeumIntent | null): Promise<string | null> {
     if (!ANSWER_API_URL) return null;
     try {
       const controller = new AbortController();
       const t = setTimeout(() => controller.abort(), 15000);
+      const bodyPayload: any = { question, context: ctx };
+      if (intent) bodyPayload.intent = intent;
+      // Worker가 추가 필드를 무시하더라도 무해합니다. (호환성 유지)
       const resp = await fetch(ANSWER_API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, context: ctx }),
+        body: JSON.stringify(bodyPayload),
         signal: controller.signal,
       });
       clearTimeout(t);
       if (!resp.ok) return null;
       const data = await resp.json().catch(() => null);
-      if (data && data.ok && typeof data.text === "string") return data.text;
+      if (data && data.ok && typeof data.text === "string") {
+        const cleaned = sanitizeAnswerText(data.text);
+        if (cleaned) return cleaned;
+      }
       return null;
     } catch {
       return null;
@@ -110,8 +127,14 @@ export default function DocBot({ className = "" }: DocBotProps): JSX.Element {
 
     if (aiAvailable) {
       setGenerating(true);
-      // Build compact context from highlights (or fallback to section text)
+      // 의도(intent) 추정 및 핵심 facts 구성
+      const intent = intentFromQuestion(query);
+      const facts = getFacts(intent);
+      // Build compact context from facts + highlights (or fallback to section text)
       const ctx: string[] = [];
+      if (facts) {
+        ctx.push(facts);
+      }
       if (res && res.length > 0) {
         for (const h of res) {
           if (h.highlights.length > 0) {
@@ -122,39 +145,60 @@ export default function DocBot({ className = "" }: DocBotProps): JSX.Element {
           if (ctx.join("\n").length > 1400) break; // cap ~1.4k chars to save tokens
         }
       }
-      const text = await generateAnswer(query, ctx.slice(0, 3));
+      const text = await generateAnswer(query, ctx.slice(0, 3), intent);
       if (text) setAnswer(text);
       setGenerating(false);
     }
   }
 
-  // 단순 링크 변환 렌더러: http/https URL을 클릭 링크로, 줄바꿈 유지
+  // 단순 링크 변환 렌더러: http/https URL과 전화번호를 클릭 링크로, 줄바꿈 유지
   function renderAnswer(text: string) {
     const urlRe = /(https?:\/\/[^\s)]+)(?=\s|\)|$)/g;
+    const phoneRe = /\b(0\d{1,2}-\d{3,4}-\d{4})\b/g; // 예: 0507-1386-2171, 02-1234-5678
     const lines = text.split(/\n/);
     return (
       <div className="text-[13px] leading-relaxed text-[#2d4b45]">
         {lines.map((line, i) => {
-          const parts: (string | { url: string })[] = [];
-          let lastIndex = 0;
-          line.replace(urlRe, (m, url: string, offset: number) => {
-            if (offset > lastIndex) parts.push(line.slice(lastIndex, offset));
-            parts.push({ url });
-            lastIndex = offset + m.length;
-            return m;
-          });
-          if (lastIndex < line.length) parts.push(line.slice(lastIndex));
+          // 하나의 패스로 URL/전화번호 둘 다 처리하기 위해, 두 정규식을 이용해 작은 토큰 스트림을 만듭니다.
+          const parts: (string | { url?: string; tel?: string; text: string })[] = [];
+          let cursor = 0;
+          const combined = new RegExp(`${urlRe.source}|${phoneRe.source}`, 'g');
+          let m: RegExpExecArray | null;
+          while ((m = combined.exec(line)) !== null) {
+            const match = m[0];
+            const start = m.index;
+            const end = start + match.length;
+            if (start > cursor) parts.push(line.slice(cursor, start));
+            if (/^https?:\/\//.test(match)) {
+              parts.push({ url: match, text: match });
+            } else {
+              // 전화번호
+              const telDigits = match.replace(/-/g, '');
+              parts.push({ tel: `tel:${telDigits}`, text: match });
+            }
+            cursor = end;
+          }
+          if (cursor < line.length) parts.push(line.slice(cursor));
           return (
             <div key={i}>
-              {parts.map((p, j) =>
-                typeof p === 'string' ? (
-                  <React.Fragment key={j}>{p}</React.Fragment>
-                ) : (
-                  <a key={j} href={p.url} target="_blank" rel="noopener noreferrer" className="text-[#2a6a66] underline break-all">
-                    {p.url}
-                  </a>
-                )
-              )}
+              {parts.map((p, j) => {
+                if (typeof p === 'string') return <React.Fragment key={j}>{p}</React.Fragment>;
+                if (p.url) {
+                  return (
+                    <a key={j} href={p.url} target="_blank" rel="noopener noreferrer" className="text-[#2a6a66] underline break-all">
+                      {p.text}
+                    </a>
+                  );
+                }
+                if (p.tel) {
+                  return (
+                    <a key={j} href={p.tel} className="text-[#2a6a66] underline">
+                      {p.text}
+                    </a>
+                  );
+                }
+                return <React.Fragment key={j}>{p.text}</React.Fragment>;
+              })}
             </div>
           );
         })}
