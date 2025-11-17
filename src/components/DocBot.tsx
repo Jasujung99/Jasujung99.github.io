@@ -127,8 +127,10 @@ export default function DocBot({ className = "" }: DocBotProps): JSX.Element {
         ].join(" ")}
       >
         <span className="sr-only">문서 도움봇</span>
+        {/* 로봇 아이콘 (안테나 + 눈 + 몸체) */}
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="mx-auto h-5 w-5">
-          <path d="M12 2a10 10 0 1 0 6.32 17.9l2.09.63a1 1 0 0 0 1.25-1.24l-.63-2.1A10 10 0 0 0 12 2zm0 4a1.25 1.25 0 1 1 0 2.5A1.25 1.25 0 0 1 12 6zm-2 5h2a1 1 0 0 1 1 1v5h-2v-4h-1v-2z" />
+          <path d="M12 2a1 1 0 0 0-1 1v1.06A7.002 7.002 0 0 0 5 11v5.5A2.5 2.5 0 0 0 7.5 19h.55a3.5 3.5 0 0 0 6.9 0h.55a2.5 2.5 0 0 0 2.5-2.5V11a7.002 7.002 0 0 0-6-6.94V3a1 1 0 0 0-1-1Zm0 6.5c1.105 0 2 .895 2 2v1a2 2 0 1 1-4 0v-1c0-1.105.895-2 2-2Z" />
+          <path d="M9.25 9.75a.75.75 0 1 0 0 1.5h.5a.75.75 0 1 0 0-1.5h-.5Zm5 0a.75.75 0 1 0 0 1.5h.5a.75.75 0 1 0 0-1.5h-.5Z" />
         </svg>
       </button>
 
