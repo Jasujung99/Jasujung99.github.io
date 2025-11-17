@@ -57,6 +57,48 @@ function stripMarkdown(md: string): string {
     .trim();
 }
 
+// Pre-clean raw text before markdown stripping
+// - Removes common noise lines from imported blog dumps (e.g., Naver UI strings)
+// - Drops "태그" blocks and miscellaneous toolbar labels
+// - Normalizes excessive blank lines and zero-width chars
+function precleanRawText(s: string): string {
+  if (!s) return s;
+  // Remove zero-width and BOM-like artifacts
+  let out = s.replace(/[\u200B-\u200D\uFEFF]/g, '');
+
+  // Remove blocks starting with a line exactly "태그" until next non-empty starting line
+  // Example:
+  // 태그\n#키워드\n#키워드2\n ... (until next non-empty line that does not start with whitespace)
+  out = out.replace(/^태그\s*$[\s\S]*?(?=^\S|\Z)/gm, '');
+
+  // Remove single-line UI noise (exact line matches)
+  const noiseLines = [
+    '프로파일',
+    'URL 복사',
+    '통계',
+    '본문 기타 기능',
+    '태그수정',
+    'Keep 보내기메모 보내기기타 보내기 펼치기',
+    'Keep 보내기',
+    '메모 보내기',
+    '기타 보내기',
+    '펼치기',
+    '수정 삭제 설정',
+    '외부',
+    '네이버 지도',
+    'naver.me'
+  ];
+  const escaped = noiseLines.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  if (escaped.length) {
+    const re = new RegExp(`^(?:${escaped.join('|')})\\s*$`, 'gm');
+    out = out.replace(re, '');
+  }
+
+  // Collapse long runs of blank lines and trim trailing spaces per line
+  out = out.replace(/\s+$/gm, '').replace(/\n{3,}/g, '\n\n').trim() + '\n';
+  return out;
+}
+
 function splitSections(stripped: string, fallbackTitle: string): { title: string; body: string; full: string }[] {
   const raw = stripped.split(/\n(?=#+\s)/).filter(Boolean);
   const parts = raw.length > 0 ? raw : [stripped];
@@ -91,9 +133,10 @@ export async function buildIndex(manifestUrl = '/kb/manifest.json'): Promise<KBI
       const fileRes = await fetch(item.url, { cache: 'no-store' });
       if (!fileRes.ok) continue;
       const raw = await fileRes.text();
+      const cleaned = precleanRawText(raw);
       const file = item.url.split('/').pop() || item.url;
       const fallbackTitle = (item.title || file).replace(/\.(md|txt)$/i, '');
-      const stripped = stripMarkdown(raw);
+      const stripped = stripMarkdown(cleaned);
       const parts = splitSections(stripped, fallbackTitle);
       for (const p of parts) {
         const text = p.full;
