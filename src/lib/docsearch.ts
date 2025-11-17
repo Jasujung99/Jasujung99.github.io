@@ -49,9 +49,16 @@ function stripMarkdown(md: string): string {
     .replace(/\[(.*?)\]\((.*?)\)/g, '$1')
     // images: ![alt](src) -> alt
     .replace(/!\[(.*?)\]\((.*?)\)/g, '$1')
-    // strip emphasis/backticks/extra symbols, keep heading markers as spaces
-    .replace(/[*_~`]/g, '')
-    .replace(/[>#-]/g, ' ')
+    // strip emphasis/backticks/extra symbols
+    // - Keep single tilde(~) so ranges like "1~2년" are preserved
+    // - Remove strikethrough markers only (~~like this~~)
+    .replace(/~~/g, '')
+    .replace(/[*_`]/g, '')
+    // handle headings/blockquote/list markers at line starts only
+    // - Replace leading '>' or '#' runs with a single space
+    .replace(/^[ \t]*[>#]+[ \t]?/gm, ' ')
+    // - Remove leading list bullets (- * +) to keep content while preserving hyphens in dates like 2024-11-14
+    .replace(/^[ \t]*[-*+][ \t]+/gm, '')
     // collapse whitespace
     .replace(/\s+/g, ' ')
     .trim();
