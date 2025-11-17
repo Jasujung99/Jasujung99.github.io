@@ -7,6 +7,9 @@ export type DocBotProps = {
 };
 
 export default function DocBot({ className = "" }: DocBotProps): JSX.Element {
+  // AI 전용 표시 모드: 화면에는 AI 답변만 보여주고, 문서 하이라이트(출처) UI는 숨깁니다.
+  // 내부적으로는 여전히 로컬 KB를 검색해 컨텍스트를 구성해 비용 대비 품질을 유지합니다.
+  const AI_ONLY = true;
   const [open, setOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [index, setIndex] = React.useState<KBIndex | null>(null);
@@ -137,13 +140,13 @@ export default function DocBot({ className = "" }: DocBotProps): JSX.Element {
           className="pointer-events-auto fixed right-4 bottom-20 z-50 w-[min(92vw,360px)] overflow-hidden rounded-2xl border border-black/5 bg-white shadow-xl"
         >
           <div className="flex items-center justify-between border-b bg-white/80 px-3 py-2 text-sm">
-            <div className="font-medium text-[#317873]">문서 도움봇</div>
+            <div className="font-medium text-[#317873]">AI 도움봇</div>
             <button className="rounded p-1 text-gray-500 hover:bg-gray-50" onClick={() => setOpen(false)} aria-label="닫기">✕</button>
           </div>
 
           <div className="max-h-80 overflow-auto p-3 text-sm">
-            {loading && <div className="text-gray-500">문서를 준비하는 중…</div>}
-            {!loading && emptyKB && (
+            {loading && !AI_ONLY && <div className="text-gray-500">문서를 준비하는 중…</div>}
+            {!loading && emptyKB && !AI_ONLY && (
               <div className="space-y-2 text-gray-600">
                 <p>아직 연결된 문서가 없습니다.</p>
                 <p className="text-xs">관리자: <code>/public/kb/manifest.json</code>에 문서를 등록해 주세요.</p>
@@ -151,7 +154,7 @@ export default function DocBot({ className = "" }: DocBotProps): JSX.Element {
             )}
 
             {/* AI composed answer (beta) */}
-            {!loading && !emptyKB && (generating || answer) && (
+            {!loading && (generating || answer) && (
               <div className="mb-3 rounded-md border border-[#317873]/20 bg-[#f3fbf9] p-3 text-[#285f5b]">
                 <div className="mb-1 flex items-center gap-2 text-xs font-semibold text-[#317873]">
                   <span className="inline-flex items-center gap-1">
@@ -160,21 +163,21 @@ export default function DocBot({ className = "" }: DocBotProps): JSX.Element {
                   </span>
                   {generating && <span className="ml-auto inline-flex items-center gap-2 text-[11px] text-[#317873]">
                     <span className="h-3 w-3 animate-spin rounded-full border-2 border-[#317873]/30 border-t-[#317873]" />
-                    작성 중…
+                    답변 작성 중…
                   </span>}
                 </div>
                 {answer && <div className="whitespace-pre-line text-[13px] leading-relaxed text-[#2d4b45]">{answer}</div>}
-                {!answer && generating && <div className="text-[13px] text-[#2d4b45]">컨텍스트를 바탕으로 답변을 준비하고 있어요…</div>}
+                {!answer && generating && <div className="text-[13px] text-[#2d4b45]">답변을 준비하고 있어요…</div>}
               </div>
             )}
 
             {/* Empty hint */}
-            {!loading && !emptyKB && hits.length === 0 && !generating && !answer && (
-              <div className="text-gray-500">무엇이 궁금하신가요? (예: 운영 시간, 오시는 길, 프로그램)</div>
+            {!loading && hits.length === 0 && !generating && !answer && (
+              <div className="text-gray-500">무엇이 궁금하신가요? 편하게 질문해 주세요.</div>
             )}
 
             {/* Sources (highlights) */}
-            {!loading && hits.length > 0 && (
+            {!loading && hits.length > 0 && !AI_ONLY && (
               <div className="space-y-3">
                 {hits.map((h, i) => (
                   <div key={i} className="rounded-md bg-gray-50/70 p-2">
