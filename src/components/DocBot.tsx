@@ -21,6 +21,18 @@ export default function DocBot({ className = "" }: DocBotProps): JSX.Element {
   const panelRef = React.useRef<HTMLDivElement | null>(null);
   const inputRef = React.useRef<HTMLInputElement | null>(null);
 
+  // 빠른 질문(퀵 리플라이)
+  const quickQuestions = React.useMemo(
+    () => [
+      "운영 시간은 어떻게 되나요?",
+      "오시는 길/위치는 어디인가요?",
+      "어떤 프로그램이 있나요?",
+      "문의는 어디로 하면 되나요?",
+      "진행은 어떻게 하나요?",
+    ],
+    []
+  );
+
   // Lazy build index on first open
   React.useEffect(() => {
     if (!open || index) return;
@@ -85,29 +97,75 @@ export default function DocBot({ className = "" }: DocBotProps): JSX.Element {
 
   async function onSubmit(e?: React.FormEvent) {
     e?.preventDefault();
-    if (!index) return;
     const query = q.trim();
     if (!query) return;
     setAnswer(null);
-    const res = search(query, index, 5);
-    setHits(res);
+    let res: ReturnType<typeof search> = [];
+    if (index) {
+      res = search(query, index, 5);
+      setHits(res);
+    } else {
+      setHits([]);
+    }
 
     if (aiAvailable) {
       setGenerating(true);
       // Build compact context from highlights (or fallback to section text)
       const ctx: string[] = [];
-      for (const h of res) {
-        if (h.highlights.length > 0) {
-          ctx.push(h.highlights.join("\n"));
-        } else {
-          ctx.push(h.section.text.slice(0, 500));
+      if (res && res.length > 0) {
+        for (const h of res) {
+          if (h.highlights.length > 0) {
+            ctx.push(h.highlights.join("\n"));
+          } else {
+            ctx.push(h.section.text.slice(0, 500));
+          }
+          if (ctx.join("\n").length > 1400) break; // cap ~1.4k chars to save tokens
         }
-        if (ctx.join("\n").length > 1400) break; // cap ~1.4k chars to save tokens
       }
       const text = await generateAnswer(query, ctx.slice(0, 3));
       if (text) setAnswer(text);
       setGenerating(false);
     }
+  }
+
+  // 단순 링크 변환 렌더러: http/https URL을 클릭 링크로, 줄바꿈 유지
+  function renderAnswer(text: string) {
+    const urlRe = /(https?:\/\/[^\s)]+)(?=\s|\)|$)/g;
+    const lines = text.split(/\n/);
+    return (
+      <div className="text-[13px] leading-relaxed text-[#2d4b45]">
+        {lines.map((line, i) => {
+          const parts: (string | { url: string })[] = [];
+          let lastIndex = 0;
+          line.replace(urlRe, (m, url: string, offset: number) => {
+            if (offset > lastIndex) parts.push(line.slice(lastIndex, offset));
+            parts.push({ url });
+            lastIndex = offset + m.length;
+            return m;
+          });
+          if (lastIndex < line.length) parts.push(line.slice(lastIndex));
+          return (
+            <div key={i}>
+              {parts.map((p, j) =>
+                typeof p === 'string' ? (
+                  <React.Fragment key={j}>{p}</React.Fragment>
+                ) : (
+                  <a key={j} href={p.url} target="_blank" rel="noopener noreferrer" className="text-[#2a6a66] underline break-all">
+                    {p.url}
+                  </a>
+                )
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  function quickAsk(question: string) {
+    setQ(question);
+    // 입력값 반영 후 제출
+    setTimeout(() => onSubmit(), 0);
   }
 
   const emptyKB = index && index.sections.length === 0;
@@ -167,14 +225,28 @@ export default function DocBot({ className = "" }: DocBotProps): JSX.Element {
                     답변 작성 중…
                   </span>}
                 </div>
-                {answer && <div className="whitespace-pre-line text-[13px] leading-relaxed text-[#2d4b45]">{answer}</div>}
+                {answer && renderAnswer(answer)}
                 {!answer && generating && <div className="text-[13px] text-[#2d4b45]">답변을 준비하고 있어요…</div>}
               </div>
             )}
 
             {/* Empty hint */}
             {!loading && hits.length === 0 && !generating && !answer && (
-              <div className="text-gray-500">무엇이 궁금하신가요? 편하게 질문해 주세요.</div>
+              <div className="text-gray-600">
+                <div className="mb-2">무엇이 궁금하신가요? 편하게 질문해 주세요.</div>
+                <div className="flex flex-wrap gap-2">
+                  {quickQuestions.map((qq) => (
+                    <button
+                      key={qq}
+                      type="button"
+                      onClick={() => quickAsk(qq)}
+                      className="rounded-full border border-[#317873]/30 bg-white px-3 py-1 text-[12px] text-[#2a6a66] hover:bg-[#f0faf7]"
+                    >
+                      {qq}
+                    </button>
+                  ))}
+                </div>
+              </div>
             )}
 
             {/* Sources (highlights) */}
