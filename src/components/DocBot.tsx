@@ -82,7 +82,14 @@ export default function DocBot({ className = "" }: DocBotProps): JSX.Element {
     let out = sentences.filter((s) => !ban.test(s)).join(" ");
     // 2) 보정: 잘못된 채널 표현을 실제 연락 채널로 안내
     out = out.replace(/고객센터|문의\s?게시판/gi, `네이버 톡톡(${CONTACT.talk}) 또는 전화 ${CONTACT.PHONE}`);
-    return out.trim();
+    out = out.trim();
+    // 3) 명백한 지리 정보 모순 감지 시 안전 폴백(서울/서대문 등 → 세종 기반 사실과 불일치 가능)
+    const mentionsSeoul = /(서울|서대문)/.test(out);
+    const mentionsLocal = /(세종|다정중앙로|242호)/.test(out);
+    if (mentionsSeoul && !mentionsLocal) {
+      return `정확한 확인이 필요합니다. 네이버 톡톡(${CONTACT.talk}) 또는 전화 ${CONTACT.PHONE}로 문의해 주세요.`;
+    }
+    return out;
   }
 
   async function generateAnswer(question: string, ctx: string[], intent?: HaeumIntent | null): Promise<string | null> {
@@ -315,7 +322,31 @@ export default function DocBot({ className = "" }: DocBotProps): JSX.Element {
             )}
           </div>
 
-          <form onSubmit={(e) => onSubmit(e)} className="flex gap-2 border-t bg-white/80 p-3">
+          {/* Disclaimer: AI accuracy notice + contact shortcuts */}
+          <div className="px-3 py-2 text-[11px] text-gray-500 bg-white/80 border-t">
+            <p className="leading-snug">
+              * AI는 틀릴 수 있습니다. 정확한 사항은 기관에 직접 문의 바랍니다.
+              <span className="ml-1">
+                <a
+                  href={CONTACT.talk}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline text-[#2a6a66]"
+                >
+                  네이버 톡톡
+                </a>
+                <span className="mx-1">·</span>
+                <a
+                  href={`tel:${CONTACT.PHONE.replace(/-/g, '')}`}
+                  className="underline text-[#2a6a66]"
+                >
+                  {CONTACT.PHONE}
+                </a>
+              </span>
+            </p>
+          </div>
+
+          <form onSubmit={(e) => onSubmit(e)} className="flex gap-2 bg-white/80 p-3">
             <input
               ref={inputRef}
               type="text"

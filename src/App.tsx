@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import HaeumHomePage from "@/pages/HaeumHomePage";
 import RoaLoadingPage from "@/pages/RoaLoadingPage";
 import DocBot from "@/components/DocBot";
+import EducationExam from "@/pages/EducationExam";
 
 function App(): JSX.Element {
   const [hash, setHash] = useState<string>(window.location.hash || "#/");
@@ -19,6 +20,9 @@ function App(): JSX.Element {
     case "/roa":
     case "/loading": // backward compatibility
       page = <RoaLoadingPage />;
+      break;
+    case "/education-exam":
+      page = <EducationExam />;
       break;
     case "/":
     case "":

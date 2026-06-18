@@ -5,12 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import AnimatedBackground from "@/components/AnimatedBackground";
+import { LegalModal } from "@/components/LegalModals";
+import LeadForm from "@/components/LeadForm";
 
 function HaeumHomePage(): JSX.Element {
   const [email, setEmail] = useState("");
   const [formStatus, setFormStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [formMessage, setFormMessage] = useState<string | null>(null);
   const [showRoaIcon, setShowRoaIcon] = useState(false);
+  const [openLegal, setOpenLegal] = useState<null | 'terms' | 'privacy' | 'combined'>(null);
+  const [contactTab, setContactTab] = useState<'subscribe' | 'lead'>('subscribe');
 
   // Serverless backend endpoint (Cloudflare Worker)
   const subscribeApi = "https://sweet-bird-16a2.jasujung404.workers.dev/api/subscribe";
@@ -102,7 +106,10 @@ function HaeumHomePage(): JSX.Element {
                 소개
               </a>
               <a href="#programs" className="hover:text-[#317873]">
-                프로그램
+                프로그램 안내
+              </a>
+              <a href="#online-learning" className="hover:text-[#317873]">
+                온라인 학습
               </a>
               <a href="#contact" className="hover:text-[#317873]">
                 문의
@@ -207,7 +214,16 @@ function HaeumHomePage(): JSX.Element {
           </section>
 
           <section id="programs" className="py-16">
-            <h3 className="mb-6 text-2xl font-semibold text-[#4a5d52]">프로그램 안내</h3>
+            <div className="mb-6 flex items-center justify-between gap-3">
+              <h3 className="text-2xl font-semibold text-[#4a5d52]">프로그램 안내</h3>
+              <a
+                href="#/education-exam"
+                className="shrink-0 rounded-full border border-[#317873]/30 bg-white px-4 py-2 text-sm text-[#2a6a66] hover:bg-[#f0faf7]"
+                title="교육·시험 상세 페이지로 이동"
+              >
+                자세히 보기
+              </a>
+            </div>
 
             {/* 교육/시험 대비 */}
             <h4 className="mb-3 text-lg font-semibold text-[#4a5d52]">교육/시험 대비</h4>
@@ -256,6 +272,23 @@ function HaeumHomePage(): JSX.Element {
             </div>
           </section>
 
+          {/* 온라인 학습 섹션 */}
+          <section id="online-learning" className="py-16">
+            <h3 className="mb-6 text-2xl font-semibold text-[#4a5d52]">온라인 학습</h3>
+            <div className="rounded-2xl border border-[#317873]/10 bg-white p-8 shadow-sm text-center">
+              <h4 className="mb-3 text-2xl font-semibold text-[#4a5d52]">어휘</h4>
+              <p className="mb-6 text-[#5b5b5b]">빈출 단어 쓰기와 예문을 통해 어휘력을 늘려요.</p>
+              <a
+                href="https://boa-newwords.pages.dev"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center rounded-full bg-[#317873] px-8 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-[#285f5b]"
+              >
+                시작
+              </a>
+            </div>
+          </section>
+
           <section id="contact" className="py-16">
             <h3 className="mb-4 text-2xl font-semibold text-[#4a5d52] reveal-contact opacity-0 will-change-transform">
               문의 및 {" "}
@@ -297,109 +330,152 @@ function HaeumHomePage(): JSX.Element {
                 )}
               </span>
             </h3>
-            <p className="mb-4 text-sm text-[#444] reveal-contact opacity-0 will-change-transform">
-              유용한 소식은 이메일을 통해 가장 먼저 전달할게요. 관심과 성원 감사합니다. 🙏
-            </p>
-            {/* 구독 영역: 인라인 입력 + 버튼 → 서버리스로 전송 */}
-            <div className="flex flex-col gap-3 rounded-xl border border-[#317873]/10 bg-white p-6 shadow-sm reveal-contact opacity-0 will-change-transform">
-              <form
-                className="flex w-full flex-col gap-3 md:flex-row md:items-center"
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  if (!isValidEmail(email)) {
-                    setFormStatus("error");
-                    setFormMessage("올바른 이메일 주소를 입력해 주세요.");
-                    return;
-                  }
-                  try {
-                    setFormStatus("submitting");
-                    setFormMessage(null);
-                    const resp = await fetch(subscribeApi, {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ email, source: "haeum-homepage" }),
-                    });
-                    const data = await resp.json().catch(() => ({}));
-                    if (resp.ok && data?.ok) {
-                      setFormStatus("success");
-                      setFormMessage(
-                        data.created
-                          ? "신청이 접수되었습니다. 소식 전해드릴게요!"
-                          : "이미 신청하신 이메일입니다. 최신 소식을 곧 전해드릴게요."
-                      );
-                      setEmail("");
-                    } else if (data?.error === "invalid_email") {
-                      setFormStatus("error");
-                      setFormMessage("올바른 이메일 주소를 입력해 주세요.");
-                    } else {
-                      setFormStatus("error");
-                      setFormMessage("일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
-                    }
-                  } catch (err) {
-                    setFormStatus("error");
-                    setFormMessage("네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
-                  }
-                }}
-              >
-                <Input
-                  type="email"
-                  placeholder="이메일 주소 입력"
-                  autoComplete="email"
-                  className="w-full flex-1 md:w-auto"
-                  aria-label="이메일 주소"
-                  required
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                />
-                <Button
-                  type="submit"
-                  disabled={formStatus === "submitting" || email.trim().length === 0}
-                  className={cn(
-                    "shrink-0 bg-[#317873] text-white hover:bg-[#285f5b] disabled:cursor-not-allowed disabled:opacity-60"
-                  )}
-                >
-                  {formStatus === "submitting" ? (
-                    <span className="flex items-center gap-2 text-sm">
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                      전송 중...
-                    </span>
-                  ) : (
-                    "소식 받기"
-                  )}
-                </Button>
-              </form>
-
-              {/* 결과/오류 메시지 */}
-              <div
+            {/* 탭: 소식 받기 | 상담/문의 */}
+            <div className="mb-3 flex items-center gap-2 reveal-contact opacity-0 will-change-transform">
+              <button
+                type="button"
                 className={cn(
-                  "rounded-md px-4 py-2 text-xs",
-                  formStatus === "success"
-                    ? "bg-[#e0f2ef] text-[#285f5b]"
-                    : formStatus === "error"
-                      ? "bg-[#fdeaea] text-[#8c2f39]"
-                      : "hidden"
+                  "rounded-full px-3 py-1 text-[12px]",
+                  contactTab === 'subscribe' ? "bg-[#317873] text-white" : "border border-[#317873]/30 text-[#2a6a66] hover:bg-[#f0faf7]"
                 )}
-                aria-live="polite"
-              >
-                {formMessage}
-              </div>
-
-              <p className="text-[11px] leading-relaxed text-[#777]">
-                ※ 이메일 입력 및 제출 시 개인 정보 수집에 동의한 것으로 간주합니다.
-              </p>
-              <p className="text-[11px] leading-relaxed text-[#777]">
-                * 수집 항목: 이메일 주소 · 수집 목적: 프로그램 소식 및 안내 발송 · 보유 기간: 구독 해지 또는 삭제 요청 시까지
-              </p>
+                onClick={() => setContactTab('subscribe')}
+              >소식 받기</button>
+              <button
+                type="button"
+                className={cn(
+                  "rounded-full px-3 py-1 text-[12px]",
+                  contactTab === 'lead' ? "bg-[#317873] text-white" : "border border-[#317873]/30 text-[#2a6a66] hover:bg-[#f0faf7]"
+                )}
+                onClick={() => setContactTab('lead')}
+              >상담/문의</button>
             </div>
+
+            {contactTab === 'subscribe' ? (
+              <>
+                <p className="mb-4 text-sm text-[#444] reveal-contact opacity-0 will-change-transform">
+                  유용한 소식은 이메일을 통해 가장 먼저 전달할게요. 관심과 성원 감사합니다. 🙏
+                </p>
+                {/* 구독 영역: 인라인 입력 + 버튼 → 서버리스로 전송 */}
+                <div className="flex flex-col gap-3 rounded-xl border border-[#317873]/10 bg-white p-6 shadow-sm reveal-contact opacity-0 will-change-transform">
+                  <form
+                    className="flex w-full flex-col gap-3 md:flex-row md:items-center"
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      if (!isValidEmail(email)) {
+                        setFormStatus("error");
+                        setFormMessage("올바른 이메일 주소를 입력해 주세요.");
+                        return;
+                      }
+                      try {
+                        setFormStatus("submitting");
+                        setFormMessage(null);
+                        const resp = await fetch(subscribeApi, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ email, source: "haeum-homepage" }),
+                        });
+                        const data = await resp.json().catch(() => ({}));
+                        if (resp.ok && data?.ok) {
+                          setFormStatus("success");
+                          setFormMessage(
+                            data.created
+                              ? "신청이 접수되었습니다. 소식 전해드릴게요!"
+                              : "이미 신청하신 이메일입니다. 최신 소식을 곧 전해드릴게요."
+                          );
+                          setEmail("");
+                        } else if (data?.error === "invalid_email") {
+                          setFormStatus("error");
+                          setFormMessage("올바른 이메일 주소를 입력해 주세요.");
+                        } else {
+                          setFormStatus("error");
+                          setFormMessage("일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+                        }
+                      } catch (err) {
+                        setFormStatus("error");
+                        setFormMessage("네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+                      }
+                    }}
+                  >
+                    <Input
+                      type="email"
+                      placeholder="이메일 주소 입력"
+                      autoComplete="email"
+                      className="w-full flex-1 md:w-auto"
+                      aria-label="이메일 주소"
+                      required
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                    />
+                    <Button
+                      type="submit"
+                      disabled={formStatus === "submitting" || email.trim().length === 0}
+                      className={cn(
+                        "shrink-0 bg-[#317873] text-white hover:bg-[#285f5b] disabled:cursor-not-allowed disabled:opacity-60"
+                      )}
+                    >
+                      {formStatus === "submitting" ? (
+                        <span className="flex items-center gap-2 text-sm">
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                          전송 중...
+                        </span>
+                      ) : (
+                        "소식 받기"
+                      )}
+                    </Button>
+                  </form>
+
+                  {/* 결과/오류 메시지 */}
+                  <div
+                    className={cn(
+                      "rounded-md px-4 py-2 text-xs",
+                      formStatus === "success"
+                        ? "bg-[#e0f2ef] text-[#285f5b]"
+                        : formStatus === "error"
+                          ? "bg-[#fdeaea] text-[#8c2f39]"
+                          : "hidden"
+                    )}
+                    aria-live="polite"
+                  >
+                    {formMessage}
+                  </div>
+
+                  <p className="text-[11px] leading-relaxed text-[#777]">
+                    ※ 이메일 입력 및 제출 시 개인 정보 수집에 동의한 것으로 간주합니다.
+                  </p>
+                  <p className="text-[11px] leading-relaxed text-[#777]">
+                    * 수집 항목: 이메일 주소 · 수집 목적: 프로그램 소식 및 안내 발송 · 보유 기간: 구독 해지 또는 삭제 요청 시까지
+                  </p>
+                </div>
+              </>
+            ) : (
+              <div className="reveal-contact opacity-0 will-change-transform">
+                <div className="rounded-xl border border-[#317873]/10 bg-white p-6 shadow-sm">
+                  <LeadForm />
+                </div>
+              </div>
+            )}
           </section>
 
           <Separator className="my-10" />
 
           <footer className="pb-10 text-center text-xs text-[#999]">
-            © 2025 해움한국어 | 언어로 만나는 따뜻한 공동체
+            <div className="mb-2">
+              <button
+                type="button"
+                className="underline text-[#2a6a66] hover:text-[#285f5b] focus:outline-none focus:ring-2 focus:ring-[#a1d4ca]"
+                onClick={() => setOpenLegal('combined')}
+              >
+                서비스 이용 약관 및 개인정보 처리 방침
+              </button>
+            </div>
+            <div>© 2025 해움한국어 | 언어로 만나는 따뜻한 공동체</div>
           </footer>
         </main>
       </div>
+
+      {openLegal && (
+        <LegalModal open={true} type={openLegal} onClose={() => setOpenLegal(null)} />
+      )}
     </div>
   );
 }
