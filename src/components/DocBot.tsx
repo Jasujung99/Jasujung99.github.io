@@ -93,14 +93,14 @@ export default function DocBot({ className = "" }: DocBotProps): JSX.Element {
     return out;
   }
 
-  async function generateAnswer(question: string, ctx: string[], intent?: HaeumIntent | null): Promise<string | null> {
+  async function generateAnswer(question: string, ctx: string[], intent?: HaeumIntent | null): Promise<{ text?: string; error?: string } | null> {
     if (!ANSWER_API_URL) return null;
     try {
       const controller = new AbortController();
       const t = setTimeout(() => controller.abort(), 15000);
       const bodyPayload: any = { question, context: ctx };
       if (intent) bodyPayload.intent = intent;
-      // Worker가 추가 필드를 무시하더라도 무해합니다. (호환성 유지)
+      
       const resp = await fetch(ANSWER_API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -108,15 +108,25 @@ export default function DocBot({ className = "" }: DocBotProps): JSX.Element {
         signal: controller.signal,
       });
       clearTimeout(t);
-      if (!resp.ok) return null;
+      
       const data = await resp.json().catch(() => null);
-      if (data && data.ok && typeof data.text === "string") {
+      if (resp.ok && data && data.ok && typeof data.text === "string") {
         const cleaned = sanitizeAnswerText(data.text);
-        if (cleaned) return cleaned;
+        if (cleaned) return { text: cleaned };
       }
+      
+      // Handle error cases from server
+      if (data && data.error) {
+        let msg = data.error;
+        if (data.error === "ai_not_bound") msg = "AI 서비스가 연결되지 않았습니다. (Workers AI Binding 필요)";
+        if (data.detail) msg += `: ${data.detail}`;
+        return { error: msg };
+      }
+      
       return null;
-    } catch {
-      return null;
+    } catch (e: any) {
+      console.error("AI Answer error:", e);
+      return { error: e.name === 'AbortError' ? "요청 시간이 초과되었습니다." : "네트워크 오류가 발생했습니다." };
     }
   }
 
@@ -154,9 +164,11 @@ export default function DocBot({ className = "" }: DocBotProps): JSX.Element {
           if (ctx.join("\n").length > 1400) break; // cap ~1.4k chars to save tokens
         }
       }
-      const text = await generateAnswer(query, ctx.slice(0, 3), intent);
-      if (text) {
-        setAnswer(text);
+      const result = await generateAnswer(query, ctx.slice(0, 3), intent);
+      if (result?.text) {
+        setAnswer(result.text);
+      } else if (result?.error) {
+        setError(`오류: ${result.error}`);
       } else {
         setError("답변을 생성하는 중에 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
       }

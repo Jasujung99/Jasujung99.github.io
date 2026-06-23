@@ -32,7 +32,7 @@ export default {
         });
       }
     } catch (err) {
-      return new Response(JSON.stringify({ error: 'server_error', message: err.message }), { 
+      return new Response(JSON.stringify({ error: 'server_error', message: err.message || String(err) }), { 
         status: 500, 
         headers: corsHeaders(origin, env) 
       });
@@ -145,7 +145,7 @@ async function handleSubscribe(request, env, origin) {
 }
 
 /**
- * Handle AI Answer (Workers AI)
+ * Handle AI Answer (Hybrid: Upstage Solar or Workers AI)
  */
 async function handleAnswer(request, env, origin) {
   if (request.method !== 'POST') {
@@ -164,10 +164,6 @@ async function handleAnswer(request, env, origin) {
     return new Response(JSON.stringify({ error: 'missing_params', detail: 'Question is required' }), { status: 400, headers: corsHeaders(origin, env) });
   }
 
-  if (!env.AI) {
-    return new Response(JSON.stringify({ error: 'ai_not_bound' }), { status: 500, headers: corsHeaders(origin, env) });
-  }
-
   const sys = [
     "너는 해움한국어 안내 도우미야.",
     "제공된 발췌(context)가 있다면 이를 우선적으로 참고해 답변해.",
@@ -180,32 +176,75 @@ async function handleAnswer(request, env, origin) {
     ? context.map((c, i) => `[#${i + 1}] ${c}`).join("\n")
     : "발췌 정보 없음";
 
-  const messages = [
-    { role: "system", content: sys },
-    {
-      role: "user",
-      content: `질문: ${question}\n\n참고 발췌:\n${joinedContext}\n\n규칙:\n- 응답 길이: 3~6문장\n- 필요하면 불릿 2~4개로 정리`,
-    },
-  ];
+  const prompt = `질문: ${question}\n\n참고 발췌:\n${joinedContext}\n\n규칙:\n- 응답 길이: 3~6문장\n- 필요하면 불릿 2~4개로 정리`;
 
-  const result = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
-    messages,
-    temperature: 0.2,
-    max_output_tokens: 600,
-  });
+  // 1. Try Upstage (Solar) if API Key exists
+  if (env.UPSTAGE_API_KEY) {
+    try {
+      const upstageResp = await fetch('https://api.upstage.ai/v1/solar/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${env.UPSTAGE_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'solar-1-mini-chat',
+          messages: [
+            { role: 'system', content: sys },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.2
+        })
+      });
 
-  const text = result?.response || result?.output_text || "";
-  
-  if (!text) {
-    return new Response(JSON.stringify({ error: 'ai_empty_response', detail: 'AI model returned no text' }), { 
-      status: 500,
-      headers: corsHeaders(origin, env) 
-    });
+      if (upstageResp.ok) {
+        const data = await upstageResp.json();
+        const text = data.choices?.[0]?.message?.content || "";
+        if (text) return new Response(JSON.stringify({ ok: true, text }), { headers: corsHeaders(origin, env) });
+      } else {
+        const errText = await upstageResp.text();
+        console.error('Upstage API error:', errText);
+        // Fallback to Workers AI if available, or return error
+      }
+    } catch (e) {
+      console.error('Upstage fetch error:', e);
+    }
   }
 
-  return new Response(JSON.stringify({ ok: true, text }), { 
-    headers: corsHeaders(origin, env) 
-  });
+  // 2. Fallback to Cloudflare Workers AI
+  if (env.AI) {
+    const messages = [
+      { role: "system", content: sys },
+      { role: "user", content: prompt },
+    ];
+
+    try {
+      const result = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
+        messages,
+        temperature: 0.2,
+        max_output_tokens: 600,
+      });
+
+      const text = result?.response || result?.output_text || "";
+      if (text) return new Response(JSON.stringify({ ok: true, text }), { headers: corsHeaders(origin, env) });
+      
+      return new Response(JSON.stringify({ error: 'ai_empty_response', detail: 'AI model returned no text' }), { 
+        status: 500,
+        headers: corsHeaders(origin, env) 
+      });
+    } catch (e) {
+      return new Response(JSON.stringify({ error: 'ai_execution_failed', detail: e.message }), { 
+        status: 500,
+        headers: corsHeaders(origin, env) 
+      });
+    }
+  }
+
+  // 3. No AI service available
+  return new Response(JSON.stringify({ 
+    error: 'no_ai_service', 
+    detail: 'Neither UPSTAGE_API_KEY nor Workers AI Binding ("AI") is configured.' 
+  }), { status: 500, headers: corsHeaders(origin, env) });
 }
 
 /**
