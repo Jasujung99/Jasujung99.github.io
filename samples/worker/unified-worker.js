@@ -178,8 +178,12 @@ async function handleAnswer(request, env, origin) {
 
   const prompt = `질문: ${question}\n\n참고 발췌:\n${joinedContext}\n\n규칙:\n- 응답 길이: 3~6문장\n- 필요하면 불릿 2~4개로 정리`;
 
+  let lastError = null;
+  let servicesChecked = [];
+
   // 1. Try Upstage (Solar) if API Key exists
   if (env.UPSTAGE_API_KEY) {
+    servicesChecked.push('Upstage');
     try {
       const upstageResp = await fetch('https://api.upstage.ai/v1/solar/chat/completions', {
         method: 'POST',
@@ -203,16 +207,16 @@ async function handleAnswer(request, env, origin) {
         if (text) return new Response(JSON.stringify({ ok: true, text }), { headers: corsHeaders(origin, env) });
       } else {
         const errText = await upstageResp.text();
-        console.error('Upstage API error:', errText);
-        // Fallback to Workers AI if available, or return error
+        lastError = `Upstage error (${upstageResp.status}): ${errText}`;
       }
     } catch (e) {
-      console.error('Upstage fetch error:', e);
+      lastError = `Upstage fetch error: ${e.message}`;
     }
   }
 
   // 2. Fallback to Cloudflare Workers AI
   if (env.AI) {
+    servicesChecked.push('Workers AI');
     const messages = [
       { role: "system", content: sys },
       { role: "user", content: prompt },
@@ -228,22 +232,24 @@ async function handleAnswer(request, env, origin) {
       const text = result?.response || result?.output_text || "";
       if (text) return new Response(JSON.stringify({ ok: true, text }), { headers: corsHeaders(origin, env) });
       
-      return new Response(JSON.stringify({ error: 'ai_empty_response', detail: 'AI model returned no text' }), { 
-        status: 500,
-        headers: corsHeaders(origin, env) 
-      });
+      lastError = `Workers AI empty response. ${lastError || ''}`;
     } catch (e) {
-      return new Response(JSON.stringify({ error: 'ai_execution_failed', detail: e.message }), { 
-        status: 500,
-        headers: corsHeaders(origin, env) 
-      });
+      lastError = `Workers AI error: ${e.message}. ${lastError || ''}`;
     }
   }
 
-  // 3. No AI service available
+  // 3. No AI service available or all failed
+  if (servicesChecked.length === 0) {
+    return new Response(JSON.stringify({ 
+      error: 'no_ai_service', 
+      detail: 'Neither UPSTAGE_API_KEY nor Workers AI Binding ("AI") is configured.' 
+    }), { status: 500, headers: corsHeaders(origin, env) });
+  }
+
   return new Response(JSON.stringify({ 
-    error: 'no_ai_service', 
-    detail: 'Neither UPSTAGE_API_KEY nor Workers AI Binding ("AI") is configured.' 
+    error: 'ai_failed', 
+    detail: lastError,
+    tried: servicesChecked.join(', ')
   }), { status: 500, headers: corsHeaders(origin, env) });
 }
 
