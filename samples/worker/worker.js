@@ -7,22 +7,22 @@ export default {
     const url = new URL(request.url);
 
     // CORS preflight
+    const origin = request.headers.get('Origin') || '';
     if (request.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: corsHeaders(env) });
+      return new Response(null, { status: 204, headers: corsHeaders(origin, env) });
     }
 
     if (url.pathname !== '/api/subscribe') {
-      return new Response(JSON.stringify({ error: 'not_found' }), { status: 404, headers: corsHeaders(env) });
+      return new Response(JSON.stringify({ error: 'not_found' }), { status: 404, headers: corsHeaders(origin, env) });
     }
 
     if (request.method !== 'POST') {
-      return new Response(JSON.stringify({ error: 'method_not_allowed' }), { status: 405, headers: corsHeaders(env) });
+      return new Response(JSON.stringify({ error: 'method_not_allowed' }), { status: 405, headers: corsHeaders(origin, env) });
     }
 
-    // Optional origin check
-    const origin = request.headers.get('Origin') || '';
+    // Origin check
     if (!isAllowedOrigin(origin, env)) {
-      return new Response(JSON.stringify({ error: 'cors_blocked' }), { status: 403, headers: corsHeaders(env) });
+      return new Response(JSON.stringify({ error: 'cors_blocked', origin }), { status: 403, headers: corsHeaders(origin, env) });
     }
 
     try {
@@ -32,13 +32,13 @@ export default {
       const name = (body.name ? String(body.name) : '').trim();
 
       if (!isValidEmail(email)) {
-        return new Response(JSON.stringify({ error: 'invalid_email' }), { status: 400, headers: corsHeaders(env) });
+        return new Response(JSON.stringify({ error: 'invalid_email', received: email }), { status: 400, headers: corsHeaders(origin, env) });
       }
 
       const NOTION_TOKEN = env.NOTION_TOKEN;
       const NOTION_DB = env.NOTION_DATABASE_ID;
       if (!NOTION_TOKEN || !NOTION_DB) {
-        return new Response(JSON.stringify({ error: 'server_misconfigured' }), { status: 500, headers: corsHeaders(env) });
+        return new Response(JSON.stringify({ error: 'server_misconfigured' }), { status: 500, headers: corsHeaders(origin, env) });
       }
 
       // 1) Query existing by Email
@@ -49,7 +49,7 @@ export default {
       });
       if (!q.ok) {
         const t = await q.text();
-        return new Response(JSON.stringify({ error: 'notion_query_failed', detail: t }), { status: 502, headers: corsHeaders(env) });
+        return new Response(JSON.stringify({ error: 'notion_query_failed', detail: t }), { status: 502, headers: corsHeaders(origin, env) });
       }
       const qData = await q.json();
       const nowIso = new Date().toISOString();
@@ -70,9 +70,9 @@ export default {
         });
         if (!c.ok) {
           const t = await c.text();
-          return new Response(JSON.stringify({ error: 'notion_create_failed', detail: t }), { status: 502, headers: corsHeaders(env) });
+          return new Response(JSON.stringify({ error: 'notion_create_failed', detail: t }), { status: 502, headers: corsHeaders(origin, env) });
         }
-        return new Response(JSON.stringify({ ok: true, created: true }), { status: 200, headers: corsHeaders(env) });
+        return new Response(JSON.stringify({ ok: true, created: true }), { status: 200, headers: corsHeaders(origin, env) });
       } else {
         // 3) Update LastSeen (and optionally Name if provided)
         const pageId = qData.results[0].id;
@@ -85,12 +85,12 @@ export default {
         });
         if (!u.ok) {
           const t = await u.text();
-          return new Response(JSON.stringify({ error: 'notion_update_failed', detail: t }), { status: 502, headers: corsHeaders(env) });
+          return new Response(JSON.stringify({ error: 'notion_update_failed', detail: t }), { status: 502, headers: corsHeaders(origin, env) });
         }
-        return new Response(JSON.stringify({ ok: true, created: false }), { status: 200, headers: corsHeaders(env) });
+        return new Response(JSON.stringify({ ok: true, created: false }), { status: 200, headers: corsHeaders(origin, env) });
       }
     } catch (err) {
-      return new Response(JSON.stringify({ error: 'server_error' }), { status: 500, headers: corsHeaders(env) });
+      return new Response(JSON.stringify({ error: 'server_error', message: err.message }), { status: 500, headers: corsHeaders(origin, env) });
     }
   }
 };
@@ -103,20 +103,46 @@ function notionHeaders(token) {
   };
 }
 
-function corsHeaders(env) {
+function corsHeaders(origin, env) {
   const allow = env.ALLOWED_ORIGIN || '*';
+  let headerValue = allow;
+  
+  // If multiple origins are allowed (comma separated in env.ALLOWED_ORIGIN)
+  if (allow !== '*' && origin) {
+    const allowedOrigins = allow.split(',').map(o => o.trim());
+    try {
+      const originUrl = new URL(origin).origin;
+      if (allowedOrigins.some(ao => {
+        try { return new URL(ao).origin === originUrl; } catch { return false; }
+      })) {
+        headerValue = origin;
+      }
+    } catch (e) {
+      // Invalid origin header, fallback to first allowed or *
+    }
+  }
+
   return {
-    'Access-Control-Allow-Origin': allow,
+    'Access-Control-Allow-Origin': headerValue,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Content-Type': 'application/json',
   };
 }
 
 function isAllowedOrigin(origin, env) {
   const allow = env.ALLOWED_ORIGIN;
-  if (!allow) return true; // 개발 중엔 모든 오리진 허용
-  try { return new URL(origin).origin === new URL(allow).origin; } catch { return false; }
+  if (!allow || allow === '*') return true;
+  
+  const allowedOrigins = allow.split(',').map(o => o.trim());
+  try {
+    const originUrl = new URL(origin).origin;
+    return allowedOrigins.some(ao => {
+      try { return new URL(ao).origin === originUrl; } catch { return false; }
+    });
+  } catch {
+    return false;
+  }
 }
 
 function isValidEmail(v) {

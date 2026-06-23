@@ -392,7 +392,17 @@ function HaeumHomePage(): JSX.Element {
                           setFormMessage("올바른 이메일 주소를 입력해 주세요.");
                         } else {
                           setFormStatus("error");
-                          setFormMessage("일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+                          // Provide more specific error message from API if available
+                          const errorMsg = data?.message || data?.error;
+                          if (errorMsg === 'cors_blocked') {
+                            setFormMessage("보안 설정으로 인해 접근이 차단되었습니다 (CORS).");
+                          } else if (errorMsg === 'invalid_email') {
+                            setFormMessage("유효하지 않은 이메일 형식입니다.");
+                          } else if (errorMsg?.startsWith('notion_')) {
+                            setFormMessage("데이터베이스 연결 오류가 발생했습니다.");
+                          } else {
+                            setFormMessage(errorMsg || "일시적 오류가 발생했습니다. 다시 시도해 주세요.");
+                          }
                         }
                       } catch (err) {
                         setFormStatus("error");
