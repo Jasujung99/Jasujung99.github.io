@@ -8,6 +8,7 @@ import { SUBSCRIBE_API_URL } from "@/lib/config";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import { LegalModal } from "@/components/LegalModals";
 import LeadForm from "@/components/LeadForm";
+import AnnouncementModal from "@/components/AnnouncementModal";
 
 function HaeumHomePage(): JSX.Element {
   const [email, setEmail] = useState("");
@@ -94,6 +95,7 @@ function HaeumHomePage(): JSX.Element {
 
   return (
     <div className="relative min-h-screen bg-[#fdfaf6] font-sans text-[#2f2f2f]">
+      <AnnouncementModal />
 
       <div className={cn("relative min-h-screen transition-all duration-300")}>
         <header className="sticky top-0 z-10 bg-white p-6 shadow-sm">
