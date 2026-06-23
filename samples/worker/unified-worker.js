@@ -240,9 +240,14 @@ async function handleAnswer(request, env, origin) {
 
   // 3. No AI service available or all failed
   if (servicesChecked.length === 0) {
+    const availableKeys = Object.keys(env).filter(k => !k.includes('TOKEN') && !k.includes('KEY')); // 보안을 위해 토큰/키 이름은 제외하고 출력
+    // 대신 특정 키가 있는지 여부만 확인
+    const hasUpstage = !!env.UPSTAGE_API_KEY;
+    const hasAI = !!env.AI;
+    
     return new Response(JSON.stringify({ 
       error: 'no_ai_service', 
-      detail: 'Neither UPSTAGE_API_KEY nor Workers AI Binding ("AI") is configured.' 
+      detail: `Neither UPSTAGE_API_KEY nor Workers AI Binding ("AI") is detected by the code. (HasUpstage: ${hasUpstage}, HasAI: ${hasAI})` 
     }), { status: 500, headers: corsHeaders(origin, env) });
   }
 
