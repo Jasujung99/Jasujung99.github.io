@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { SUBSCRIBE_API_URL } from "@/lib/config";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import { LegalModal } from "@/components/LegalModals";
 import LeadForm from "@/components/LeadForm";
@@ -15,9 +16,6 @@ function HaeumHomePage(): JSX.Element {
   const [showRoaIcon, setShowRoaIcon] = useState(false);
   const [openLegal, setOpenLegal] = useState<null | 'terms' | 'privacy' | 'combined'>(null);
   const [contactTab, setContactTab] = useState<'subscribe' | 'lead'>('subscribe');
-
-  // Serverless backend endpoint (Cloudflare Worker)
-  const subscribeApi = "https://sweet-bird-16a2.jasujung404.workers.dev/api/subscribe";
 
   function isValidEmail(value: string): boolean {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
@@ -361,18 +359,24 @@ function HaeumHomePage(): JSX.Element {
                     className="flex w-full flex-col gap-3 md:flex-row md:items-center"
                     onSubmit={async (e) => {
                       e.preventDefault();
-                      if (!isValidEmail(email)) {
+                      const trimmedEmail = email.trim();
+                      if (!isValidEmail(trimmedEmail)) {
                         setFormStatus("error");
                         setFormMessage("올바른 이메일 주소를 입력해 주세요.");
+                        return;
+                      }
+                      if (!SUBSCRIBE_API_URL) {
+                        setFormStatus("error");
+                        setFormMessage("구독 서비스가 현재 이용 불가능합니다.");
                         return;
                       }
                       try {
                         setFormStatus("submitting");
                         setFormMessage(null);
-                        const resp = await fetch(subscribeApi, {
+                        const resp = await fetch(SUBSCRIBE_API_URL, {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ email, source: "haeum-homepage" }),
+                          body: JSON.stringify({ email: trimmedEmail, source: "haeum-homepage" }),
                         });
                         const data = await resp.json().catch(() => ({}));
                         if (resp.ok && data?.ok) {
@@ -404,7 +408,13 @@ function HaeumHomePage(): JSX.Element {
                       aria-label="이메일 주소"
                       required
                       value={email}
-                      onChange={(event) => setEmail(event.target.value)}
+                      onChange={(event) => {
+                        setEmail(event.target.value);
+                        if (formStatus !== "idle") {
+                          setFormStatus("idle");
+                          setFormMessage(null);
+                        }
+                      }}
                     />
                     <Button
                       type="submit"
