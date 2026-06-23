@@ -160,8 +160,8 @@ async function handleAnswer(request, env, origin) {
   const question = body.question;
   const context = Array.isArray(body.context) ? body.context : [];
 
-  if (!question || context.length === 0) {
-    return new Response(JSON.stringify({ error: 'missing_params' }), { status: 400, headers: corsHeaders(origin, env) });
+  if (!question) {
+    return new Response(JSON.stringify({ error: 'missing_params', detail: 'Question is required' }), { status: 400, headers: corsHeaders(origin, env) });
   }
 
   if (!env.AI) {
@@ -170,29 +170,39 @@ async function handleAnswer(request, env, origin) {
 
   const sys = [
     "너는 해움한국어 안내 도우미야.",
-    "다음에 제공되는 발췌(context)만 사실 근거로 사용해.",
-    "모르면 모른다고 답하고 외부 추측은 하지 마.",
+    "제공된 발췌(context)가 있다면 이를 우선적으로 참고해 답변해.",
+    "발췌 정보가 없거나 부족하더라도 아는 범위 내에서 친절하게 답하되, 확실하지 않은 내용은 '확인이 필요하다'고 안내해.",
     "톤은 따뜻하고 간결하게. 불필요한 장황함은 피하고 목록은 2~4개까지만.",
     "사용자 언어를 감지해 동일한 언어로 답하되 기본은 한국어.",
   ].join("\n");
 
-  const joinedContext = context.map((c, i) => `[#${i + 1}] ${c}`).join("\n");
+  const joinedContext = context.length > 0 
+    ? context.map((c, i) => `[#${i + 1}] ${c}`).join("\n")
+    : "발췌 정보 없음";
 
   const messages = [
     { role: "system", content: sys },
     {
       role: "user",
-      content: `질문: ${question}\n\n참고 발췌:\n${joinedContext}\n\n규칙:\n- 출처가 없으면 모른다고 답하기\n- 응답 길이: 3~6문장\n- 필요하면 불릿 2~4개로 정리`,
+      content: `질문: ${question}\n\n참고 발췌:\n${joinedContext}\n\n규칙:\n- 응답 길이: 3~6문장\n- 필요하면 불릿 2~4개로 정리`,
     },
   ];
 
   const result = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
     messages,
     temperature: 0.2,
-    max_output_tokens: 400,
+    max_output_tokens: 600,
   });
 
   const text = result?.response || result?.output_text || "";
+  
+  if (!text) {
+    return new Response(JSON.stringify({ error: 'ai_empty_response', detail: 'AI model returned no text' }), { 
+      status: 500,
+      headers: corsHeaders(origin, env) 
+    });
+  }
+
   return new Response(JSON.stringify({ ok: true, text }), { 
     headers: corsHeaders(origin, env) 
   });

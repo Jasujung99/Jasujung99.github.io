@@ -18,6 +18,7 @@ export default function DocBot({ className = "" }: DocBotProps): JSX.Element {
   const [hits, setHits] = React.useState<ReturnType<typeof search>>([]);
   const [generating, setGenerating] = React.useState(false);
   const [answer, setAnswer] = React.useState<string | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
   const aiAvailable = Boolean(ANSWER_API_URL);
   const panelRef = React.useRef<HTMLDivElement | null>(null);
   const inputRef = React.useRef<HTMLInputElement | null>(null);
@@ -76,18 +77,18 @@ export default function DocBot({ className = "" }: DocBotProps): JSX.Element {
   }, [open]);
 
   function sanitizeAnswerText(input: string): string {
-    // 1) 제거: 메타 표현이 섞인 문장들
-    const ban = /(발췌|발췌문|제공된 발췌|컨텍스트|출처\s?(?:가|는)|모델|\bAI\b|고객센터|문의\s?게시판)/i;
+    // 1) 제거: 답변 결과에 불필요하게 섞인 기술적/메타적 표현만 제거
+    const ban = /(제공된 발췌|컨텍스트|모델|문의\s?게시판)/i;
     const sentences = input.split(/(?<=[.!?]|\n)\s+/);
     let out = sentences.filter((s) => !ban.test(s)).join(" ");
     // 2) 보정: 잘못된 채널 표현을 실제 연락 채널로 안내
     out = out.replace(/고객센터|문의\s?게시판/gi, `네이버 톡톡(${CONTACT.talk}) 또는 전화 ${CONTACT.PHONE}`);
     out = out.trim();
-    // 3) 명백한 지리 정보 모순 감지 시 안전 폴백(서울/서대문 등 → 세종 기반 사실과 불일치 가능)
-    const mentionsSeoul = /(서울|서대문)/.test(out);
-    const mentionsLocal = /(세종|다정중앙로|242호)/.test(out);
-    if (mentionsSeoul && !mentionsLocal) {
-      return `정확한 확인이 필요합니다. 네이버 톡톡(${CONTACT.talk}) 또는 전화 ${CONTACT.PHONE}로 문의해 주세요.`;
+    // 3) 지리 정보 감지 (선택 사항): 세종시 외의 지역 정보가 강하게 포함된 경우 폴백
+    const mentionsOtherCity = /(서울|서대문|강남|부산|대구)/.test(out);
+    const mentionsSejong = /(세종|다정중앙로|242호)/.test(out);
+    if (mentionsOtherCity && !mentionsSejong && out.length < 50) {
+      return `정확한 안내를 위해 네이버 톡톡(${CONTACT.talk}) 또는 전화 ${CONTACT.PHONE}로 문의해 주세요.`;
     }
     return out;
   }
@@ -124,6 +125,7 @@ export default function DocBot({ className = "" }: DocBotProps): JSX.Element {
     const query = q.trim();
     if (!query) return;
     setAnswer(null);
+    setError(null);
     let res: ReturnType<typeof search> = [];
     if (index) {
       res = search(query, index, 5);
@@ -153,7 +155,11 @@ export default function DocBot({ className = "" }: DocBotProps): JSX.Element {
         }
       }
       const text = await generateAnswer(query, ctx.slice(0, 3), intent);
-      if (text) setAnswer(text);
+      if (text) {
+        setAnswer(text);
+      } else {
+        setError("답변을 생성하는 중에 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      }
       setGenerating(false);
     }
   }
@@ -264,12 +270,15 @@ export default function DocBot({ className = "" }: DocBotProps): JSX.Element {
             )}
 
             {/* AI composed answer (beta) */}
-            {!loading && (generating || answer) && (
-              <div className="mb-3 rounded-md border border-[#317873]/20 bg-[#f3fbf9] p-3 text-[#285f5b]">
+            {!loading && (generating || answer || error) && (
+              <div className={[
+                "mb-3 rounded-md border p-3",
+                error ? "border-red-200 bg-red-50 text-red-700" : "border-[#317873]/20 bg-[#f3fbf9] text-[#285f5b]"
+              ].join(" ")}>
                 <div className="mb-1 flex items-center gap-2 text-xs font-semibold text-[#317873]">
                   <span className="inline-flex items-center gap-1">
-                    <span className="h-2.5 w-2.5 rounded-full bg-[#317873]"></span>
-                    AI 답변
+                    <span className={["h-2.5 w-2.5 rounded-full", error ? "bg-red-400" : "bg-[#317873]"].join(" ")}></span>
+                    {error ? "안내" : "AI 답변"}
                   </span>
                   {generating && <span className="ml-auto inline-flex items-center gap-2 text-[11px] text-[#317873]">
                     <span className="h-3 w-3 animate-spin rounded-full border-2 border-[#317873]/30 border-t-[#317873]" />
@@ -277,7 +286,8 @@ export default function DocBot({ className = "" }: DocBotProps): JSX.Element {
                   </span>}
                 </div>
                 {answer && renderAnswer(answer)}
-                {!answer && generating && <div className="text-[13px] text-[#2d4b45]">답변을 준비하고 있어요…</div>}
+                {error && <div className="text-[13px] leading-relaxed">{error}</div>}
+                {!answer && !error && generating && <div className="text-[13px] text-[#2d4b45]">답변을 준비하고 있어요…</div>}
               </div>
             )}
 
