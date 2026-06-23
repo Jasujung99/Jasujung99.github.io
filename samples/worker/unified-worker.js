@@ -67,8 +67,29 @@ async function handleSubscribe(request, env, origin) {
     return new Response(JSON.stringify({ error: 'server_misconfigured', detail: 'Missing Notion env vars' }), { status: 500, headers: corsHeaders(origin, env) });
   }
 
-  // Notion Query
-  const q = await fetch(`https://api.notion.com/v1/databases/${dbId}/query`, {
+  // 1. Resolve Data Source ID (Handle Notion 2025-09-03 Multi-source DB)
+  let dsId = dbId;
+  const dbReq = await fetch(`https://api.notion.com/v1/databases/${dbId}`, {
+    method: 'GET',
+    headers: notionHeaders(token)
+  });
+
+  if (dbReq.ok) {
+    const dbData = await dbReq.json();
+    if (dbData.data_sources && dbData.data_sources.length > 0) {
+      // Pick the first data source as the target
+      dsId = dbData.data_sources[0].id;
+    }
+  } else if (dbReq.status === 404) {
+    // If it's 404, the provided ID might already be a data_source_id
+    dsId = dbId;
+  } else {
+    const detail = await dbReq.text();
+    return new Response(JSON.stringify({ error: 'notion_db_retrieval_failed', detail }), { status: 502, headers: corsHeaders(origin, env) });
+  }
+
+  // 2. Query Data Source
+  const q = await fetch(`https://api.notion.com/v1/data_sources/${dsId}/query`, {
     method: 'POST',
     headers: notionHeaders(token),
     body: JSON.stringify({ filter: { property: 'Email', email: { equals: email } }, page_size: 1 })
@@ -83,7 +104,7 @@ async function handleSubscribe(request, env, origin) {
   const nowIso = new Date().toISOString();
 
   if ((qData.results || []).length === 0) {
-    // Create New
+    // 3. Create New Page in Data Source
     const props = {
       Email: { email },
       Source: { select: { name: source } },
@@ -94,7 +115,10 @@ async function handleSubscribe(request, env, origin) {
     const c = await fetch('https://api.notion.com/v1/pages', {
       method: 'POST',
       headers: notionHeaders(token),
-      body: JSON.stringify({ parent: { database_id: dbId }, properties: props })
+      body: JSON.stringify({ 
+        parent: { type: 'data_source_id', data_source_id: dsId }, 
+        properties: props 
+      })
     });
     if (!c.ok) {
       const detail = await c.text();
@@ -180,7 +204,7 @@ async function handleAnswer(request, env, origin) {
 function notionHeaders(token) {
   return {
     'Authorization': `Bearer ${token}`,
-    'Notion-Version': '2022-06-28',
+    'Notion-Version': '2025-09-03',
     'Content-Type': 'application/json',
   };
 }
