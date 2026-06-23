@@ -399,7 +399,15 @@ function HaeumHomePage(): JSX.Element {
                           } else if (errorMsg === 'invalid_email') {
                             setFormMessage("유효하지 않은 이메일 형식입니다.");
                           } else if (errorMsg?.startsWith('notion_')) {
-                            setFormMessage("데이터베이스 연결 오류가 발생했습니다.");
+                            // Try to extract human-readable message from Notion detail JSON
+                            let detailMsg = data.detail;
+                            try {
+                              const parsedDetail = JSON.parse(data.detail);
+                              detailMsg = parsedDetail.message || data.detail;
+                            } catch (e) {
+                              // If not JSON, use as is
+                            }
+                            setFormMessage(`데이터베이스 연결 오류: ${detailMsg}`);
                           } else {
                             setFormMessage(errorMsg || "일시적 오류가 발생했습니다. 다시 시도해 주세요.");
                           }
