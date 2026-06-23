@@ -11,3 +11,9 @@ export const LEAD_API_URL: string | null =
   (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_LEAD_API_URL) ||
   (typeof window !== 'undefined' && (window as any).__LEAD_API__) ||
   null;
+
+// Optional Subscribe API endpoint for 이메일 소식 구독
+export const SUBSCRIBE_API_URL: string | null =
+  (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_SUBSCRIBE_API_URL) ||
+  (typeof window !== 'undefined' && (window as any).__SUBSCRIBE_API__) ||
+  "https://sweet-bird-16a2.jasujung404.workers.dev/api/subscribe";
