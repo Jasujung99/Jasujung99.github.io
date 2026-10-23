@@ -6,7 +6,7 @@ export type HaeumIntent = 'hours' | 'location' | 'programs' | 'contact' | 'proce
 const PHONE = '0507-1386-2171';
 const LINKS = {
   talk: 'https://talk.naver.com/W7AQRM9',
-  home: 'https://haeumkorean.me',
+  home: 'https://haeum.haeonkorean.com',
   blog: 'https://blog.naver.com/haeumkorean',
   insta: 'https://www.instagram.com/haeumkorean/',
   place: 'https://m.place.naver.com/place/1283919586/home',

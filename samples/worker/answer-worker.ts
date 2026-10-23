@@ -6,7 +6,9 @@
 // Deployment steps:
 // 1) Enable Workers AI in your Cloudflare account
 // 2) Create a Worker with this source, bind AI in wrangler.toml ([ai] binding = "AI")
-// 3) Set ALLOWED_ORIGIN to your site origin (e.g., https://haeumkorean.me)
+// 3) Set ALLOWED_ORIGIN to exact origins separated by commas. During migration:
+//    https://haeumkorean.me,https://haeum.haeonkorean.com
+//    Unset/empty allowlists and wildcard entries do not allow requests.
 // 4) Deploy via: wrangler deploy
 //
 export interface Env {
@@ -19,14 +21,20 @@ function corsHeaders(origin: string) {
     "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Vary": "Origin",
   } as Record<string, string>;
 }
 
-function detectOrigin(req: Request, env: Env): string {
-  const o = req.headers.get("Origin") || "";
-  const allow = env.ALLOWED_ORIGIN || "*";
-  if (allow === "*") return "*";
-  return o && o === allow ? o : allow;
+function detectOrigin(req: Request, env: Env): string | null {
+  const origin = req.headers.get("Origin") || "";
+  const allowedOrigins = (env.ALLOWED_ORIGIN || "").split(",").map(value => value.trim());
+  // Match the complete origin; never fall back to '*' or a different allowed origin.
+  try {
+    if (new URL(origin).origin !== origin) return null;
+  } catch {
+    return null;
+  }
+  return allowedOrigins.includes(origin) ? origin : null;
 }
 
 function isPreflight(req: Request) {
@@ -37,8 +45,15 @@ export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const origin = detectOrigin(req, env);
 
+    if (!origin) {
+      return new Response(JSON.stringify({ ok: false, error: "cors_blocked" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json", "Vary": "Origin" },
+      });
+    }
+
     if (isPreflight(req)) {
-      return new Response(null, { headers: corsHeaders(origin) });
+      return new Response(null, { status: 204, headers: corsHeaders(origin) });
     }
 
     if (req.method !== "POST") {

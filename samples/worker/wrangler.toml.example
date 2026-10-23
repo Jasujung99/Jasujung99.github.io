@@ -7,11 +7,11 @@ compatibility_date = "2024-11-01"
 binding = "AI"
 
 [vars]
-# Allow only your production site (or * during local testing)
-ALLOWED_ORIGIN = "https://haeumkorean.me"
+# Keep both exact origins during the domain transition; do not use '*'.
+ALLOWED_ORIGIN = "https://haeumkorean.me,https://haeum.haeonkorean.com"
 
 # Optional: set a custom route if using a custom domain
-# routes = [ { pattern = "haeumkorean.me/api/answer", script = "haeum-docbot-answer" } ]
+# routes = [ { pattern = "haeum.haeonkorean.com/api/answer", script = "haeum-docbot-answer" } ]
 
 # For workers.dev (default), you'll get a URL like:
 # https://<your-subdomain>.<your-worker>.workers.dev
