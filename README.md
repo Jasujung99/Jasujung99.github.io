@@ -10,6 +10,8 @@ React와 Vite로 만들었고 GitHub Actions에서 Node.js 20으로 `npm ci → 
 
 환경·빌드·CORS·로컬 화면 점검 결과: [검증 기록](docs/domain-migration-validation.md).
 
+React 라우트·섹션 anchor·전체 public 파일의 이전 대응표: [URL inventory](docs/url-migration-inventory.md). 어휘 학습 링크는 `https://words.haeonkorean.com`을 사용한다. Cloudflare Pages의 새 custom domain과 DNS·HTTPS를 먼저 확인한 뒤에만 이 PR을 병합한다. 준비 전에는 Draft를 유지한다. 호스팅은 기존 `boa-newwords.pages.dev`에서 유지한다.
+
 실행
 
 Node.js 20에서 다음 명령을 실행한다.
