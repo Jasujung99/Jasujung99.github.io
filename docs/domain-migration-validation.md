@@ -1,6 +1,6 @@
 # 도메인 변경 검증 기록
 
-점검일: 2026-10-23~24 (Asia/Seoul). 운영 전환은 아직 적용하지 않았다. 설정·전환 순서·롤백은 [운영 안내](domain-migration.md)를 따른다. 아래 기존 검증 기록과 마지막의 후속 점검을 구분해 읽는다.
+점검일: 2026-10-23~25 (Asia/Seoul). 코드 PR은 미병합이며, 10월 24일 승인된 운영 순서의 첫 단계인 어휘 Custom domain 등록 요청을 진행했다. 10월 25일 재조회에서도 DNS 설정 대기 상태다. DNS·HTTPS·새 출처 허용은 아직 미완료다. 설정·전환 순서·롤백은 [운영 안내](domain-migration.md)를 따른다. 아래 초기 검증, 후속 코드 점검과 마지막 운영 진행 기록을 구분해 읽는다.
 
 ## 시작 상태와 환경
 
@@ -41,9 +41,9 @@
 | `/api/subscribe` | `https://haeumkorean.me` | 204 | `https://haeumkorean.me` | 기존 출처 허용 |
 | `/api/subscribe` | `https://haeum.haeonkorean.com` | 204 | `https://haeumkorean.me` | 새 출처 불허 |
 
-응답만으로 운영 Worker가 어느 샘플과 같은 구현인지 확정할 수 없다. 두 경로가 같은 호스트를 사용한다는 사실도 소스 일치를 입증하지 않는다. Cloudflare 운영 코드·환경변수·활성 버전과 새 출처 허용은 별도 확인·변경이 필요하다. 샘플 수정과 로컬 테스트 성공을 운영 적용 성공으로 보고하지 않는다.
+이 응답만으로 운영 Worker가 어느 샘플과 같은 구현인지 확정할 수 없다. 두 경로가 같은 호스트를 사용한다는 사실도 소스 일치를 입증하지 않는다. 이 요청 점검 시점에는 Cloudflare 운영 코드·환경변수·활성 버전을 확인하지 못했다. 이후 직접 코드 검사로 확인한 결과는 아래 운영 진행 기록에 따로 적는다. 샘플 수정과 로컬 테스트 성공을 운영 적용 성공으로 보고하지 않는다.
 
-## 운영 미완료 항목
+## 초기 운영 미완료 항목 (2026-10-23)
 
 - 18:30 KST 읽기 전용 HTTPS HEAD에서 기존 `.me`는 GitHub.com HTTP 200, 해온 본사이트 `@`·`www`는 Hostinger HTTP 200을 확인했다. DNS 변경 전 값은 운영 안내에 기록했다. 이 응답은 전체 기능 검증을 뜻하지 않는다.
 - 새 `haeum.haeonkorean.com`은 공개 DNS에서 이름이 없는 상태였다. 실제 DNS 관리업체·충돌 레코드는 로그인한 관리 화면에서도 확인해야 한다.
@@ -68,6 +68,18 @@ PR #4의 기존 변경을 유지한 채 어휘 서비스 링크를 `https://boa-
 - 같은 시각 운영 답변·구독 API의 old/new OPTIONS 네 건은 모두 204였지만, 새 Origin에도 여전히 `Access-Control-Allow-Origin: https://haeumkorean.me`를 반환했다. 운영 CORS 준비 완료로 보고하지 않는다.
 - 기존·새 도메인과 `pages.dev` 참조를 재검색했다. `pages.dev`는 소스의 사용자 링크에서 제거되고 호스팅·전환·롤백 설명에만 남는다. root-relative public/KB URL은 그대로다. `git diff --check` 통과, workflow·Vite 설정·의존성 변경 없음.
 
-현재 PR #4는 Draft로 유지한다. 최신 전환 순서는 **Cloudflare Pages에 `words` 등록 → DNS `words` CNAME → 어휘 HTTPS·기능 → Worker old+new origin → GitHub Pages `haeum` 등록 → DNS `haeum` CNAME·HTTPS → 새 해움 모든 경로 점검 → 그 뒤에만 사용자 확인을 받아 PR #4 병합 검토**다. 어느 새 도메인이든 준비가 끝나지 않으면 병합을 보류한다. 운영 조작과 병합·배포는 이번 후속 코드 점검에서 실행하지 않는다.
+PR #4는 Draft로 유지한다. 최신 전환 순서는 **Cloudflare Pages에 `words` 등록 → DNS `words` CNAME → 어휘 HTTPS·기능 → Worker old+new origin → GitHub Pages `haeum` 등록 → DNS `haeum` CNAME·HTTPS → 새 해움 모든 경로 점검 → 그 뒤에만 사용자 확인을 받아 PR #4 병합 검토**다. 어느 새 도메인이든 준비가 끝나지 않으면 병합을 보류한다. 위 후속 코드 점검 이후 사용자가 운영 순서 진행을 승인했으며 실제 진행 범위는 다음 절에 구분한다.
 
 병합 전 새 해움 운영 주소에서 확인할 수 있는 것은 기존 main의 배포 산출물이다. 변경안의 새 어휘 링크·facts·앵커 초기 스크롤 보완이 포함된 최종 번들은 로컬에서 먼저 검증하고, 사용자 승인 병합으로 기존 Actions가 배포한 뒤 운영에서 다시 확인해야 한다. 기존 main의 앵커 문제를 최종 수정본의 운영 성공으로 기록하지 않는다. 특히 `words.haeonkorean.com`의 HTTPS·학습 기능 성공은 새 어휘 링크가 main에 배포되기 **전에** 확인해야 한다. 병합 전 점검 결과와 병합 뒤 최종 번들 점검을 혼동하지 않는다.
+
+## 승인 후 운영 진행 기록 (2026-10-24~25)
+
+사용자가 권장 순서대로 운영 진행을 승인한 뒤 Cloudflare 관리 화면에서 확인·실행했다. 다음은 로컬 샘플 테스트 결과가 아닌 실제 관리 화면의 상태다.
+
+- **1단계 등록 요청 완료, 활성화 미완료:** 10월 24일 기존 Cloudflare Pages 프로젝트 `boa-newwords`의 Custom domains에 `words.haeonkorean.com`을 추가하고 외부 DNS 업체의 CNAME 연결 방식을 선택했다. 추가 전에는 연결된 Custom domain이 없었다. 초기 표시는 `Initializing`이었고, 10월 25일 같은 화면 재조회에서 등록은 유지되며 `Inactive` / `Requires DNS setup`임을 확인했다. 기존 production 배포는 유지했으며 새 빌드·배포를 실행하지 않았다. 대시보드의 Git 연결·운영 커밋이 사전 점검한 소스와 일치함을 확인했다.
+- **2~3단계 대기:** Hostinger 로그인 후 DNS 영역과 `words` 이름의 기존 값·충돌을 확인해야 한다. 이 기록 시점에는 DNS 변경, 새 주소 HTTPS 인증서·로그인·학습 기능 검증을 완료하지 못했다. Custom domain 등록 요청을 DNS 전환·HTTPS 성공으로 보고하지 않는다.
+- **실제 활성 Worker 코드 검사 완료 (10월 24일):** `sweet-bird-16a2` Deployments의 활성 버전 `2ef03df4`가 트래픽 100%를 처리하며 편집기의 같은 Active 버전 소스를 대조했다. 운영 편집기 파일명은 `worker.js`지만 두 API 경로를 모두 처리한다. `/api/answer`와 `/api/subscribe`에 모두 `isAllowedOrigin`이 적용되고, 이 함수와 `corsHeaders`에서 `ALLOWED_ORIGIN.split(',')` 및 `trim()` 후 `new URL(...).origin` 비교로 개별 출처를 판정하며 허용된 요청 Origin 하나를 응답하는 구현을 확인했다. 기존 OPTIONS 결과만으로 쉼표 지원을 추정하지 않았다.
+- **운영 환경변수는 아직 기존 값:** Settings → Variables and Secrets에서 Type `Variable`, `ALLOWED_ORIGIN = https://haeumkorean.me`를 확인했다. 값·코드·Worker 배포는 변경하지 않았다. 복수 출처 지원 확인과 새 Origin 운영 허용 완료는 다르다. 어휘 DNS·HTTPS·기능이 준비된 뒤 4단계에서 old+new 값을 적용하고 활성 버전·트래픽 및 두 API × 두 Origin의 OPTIONS를 재검증해야 한다.
+- **나머지 운영 단계 미실행:** GitHub Pages Custom domain, `haeum` DNS, PR #4 병합과 main 배포를 실행하지 않았다. 기존 `pages.dev` 주소·어휘 호스팅·해온 본사이트·`@`·`www`·메일·네임서버는 유지했다. 운영 진행 승인과 PR 병합 승인은 별개로 관리한다.
+
+현재 다음 작업은 로그인한 실제 DNS 관리 화면에서 기록·충돌 확인 후 `words` CNAME을 설정하는 것이다. 이 단계가 준비되지 않은 동안 이후 Worker 변수 적용과 해움 도메인 전환을 앞당기지 않는다.
