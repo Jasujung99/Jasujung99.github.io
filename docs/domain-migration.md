@@ -27,19 +27,23 @@ GitHub Pages와 기존 GitHub Actions 배포 구조를 유지한다. 코드 변�
 
 로컬 환경은 처음에 Node.js 24가 발견되고 npm이 없었다. CI는 Node.js 20을 사용하므로 작업 전용 Node.js 20.20.2 / npm 10.8.2를 준비했다. 운영체제와 세부 패치 버전은 CI와 다를 수 있다. 수정 전·후 빌드 결과와 브라우저 검증 결과는 별도 검증 보고서에서 확인한다.
 
-## 운영 진행 상태 (2026-10-24~25)
+## 운영 진행 상태 (2026-10-26)
 
 위 표는 변경 전 공개 DNS 기록이며, 아래는 로그인한 Cloudflare 관리 화면에서 확인한 후속 진행 상태다.
 
 | 단계 | 확인·실행한 내용 | 남은 조건 |
 | --- | --- | --- |
-| 1. 어휘 Custom domain 등록 | 10월 24일 기존 `boa-newwords`에 `words.haeonkorean.com` 추가. 외부 DNS 업체에서 CNAME을 설정하는 방식을 선택 | 초기 `Initializing` 이후 10월 25일 재조회에서 `Inactive` / `Requires DNS setup`. 등록 요청 완료이며 활성화 완료가 아님 |
-| 2. `words` CNAME | 미변경 | Hostinger 로그인 후 실제 DNS 영역·동일 이름의 충돌과 변경 전 값을 확인해야 함 |
-| 3. 어휘 HTTPS·기능 | 미완료 | DNS 설정과 도메인 활성화 뒤 인증서·인증·학습 기능 확인 필요 |
-| 4. 운영 Worker | 활성 버전 `2ef03df4`가 트래픽 100%를 처리하며 두 API의 쉼표 목록 처리 코드를 직접 확인 | 현재 `ALLOWED_ORIGIN`은 여전히 `https://haeumkorean.me`. 변수·코드·배포는 변경하지 않았으며 3단계 뒤 old+new 값 적용·OPTIONS 재검증 필요 |
-| 5~8. 해움 전환·PR 병합 | GitHub Pages Custom domain·`haeum` DNS·main은 미변경 | 앞 단계 완료 후 진행. PR #4는 Draft이며 병합은 별도 확인 필요 |
+| 1. 어휘 Custom domain 등록 | 기존 `boa-newwords`의 `words.haeonkorean.com`이 `Active` / `SSL enabled` | 기존 프로젝트·배포·`pages.dev` 유지 |
+| 2. `words` CNAME | Hostinger에 `words` → `boa-newwords.pages.dev`, 기본 TTL `14400` 추가. 공개 DNS 반영 확인 | 같은 이름의 기존 레코드는 없었음 |
+| 3. 어휘 HTTPS·기능 | HTTPS 홈·`/auth`·`/reset-password` 200, 홈·로그인 화면 및 로그인 경로 새로고침 확인. 사용자가 새 주소의 로그인·기존 학습 정보 정상 확인 | 이메일 확인·비밀번호 재설정 메일·인쇄 전체 흐름과 인증 서비스 대시보드 설정 자체는 미검증 |
+| 4. 운영 Worker | 적용 전 활성 `2ef03df4` 재확인 후 런타임 `ALLOWED_ORIGIN`을 old+new로 Deploy. 새 활성 버전 `e2af83d5`. 두 API × 두 Origin OPTIONS 모두 204 및 요청 Origin 하나와 일치하는 ACAO | 실제 답변 생성·구독 POST는 실행하지 않음. 운영 소스는 수정하지 않음 |
+| 5. 해움 Pages | GitHub 발급 TXT로 `haeum.haeonkorean.com` 계정 소유권 검증 완료 후 저장소 Custom domain 저장. Source는 GitHub Actions 유지 | CNAME 파일과 별개인 실제 설정 변경 |
+| 6. `haeum` DNS·HTTPS | Hostinger에 `haeum` → `jasujung99.github.io`, TTL `14400` 추가. 공개 CNAME·GitHub DNS 검사 성공·유효한 HTTPS 200 확인 후 Enforce HTTPS 활성화. 루트·KB 경로 HTTP→HTTPS 301 확인 | `.me`와 별도의 자동 리디렉션은 없음 |
+| 7~8. 운영 검증·PR | 새 HTTPS에서 기존 main 공개 파일 41개·HTML·번들 총 45 GET, 실제 KB 로더 25 GET·검색, 네 React 화면·새로고침·이미지·DocBot 패널 확인. PR #4 Draft·main 미변경 | 네 앵커 ID·hash는 보존되지만 기존 main 초기 스크롤 문제는 PR 수정본 적용 대기. 병합은 별도 사용자 확인 필요 |
 
-어휘 프로젝트의 기존 production 배포는 유지되었다. 대시보드의 Git 연결·운영 커밋과 사전 점검 소스의 일치도 확인했으나, 새 도메인의 HTTPS·로그인·학습 기능 성공으로 확대 해석하지 않는다. Hostinger 로그인 전에는 실제 DNS 영역을 확인하거나 변경하지 못했으므로 이 단계만 대기하고, 이후 운영 단계를 앞당기지 않는다.
+DNS 변경 전 영역을 내보내고 13개 레코드와 네임서버를 기록했다. 변경 후 16개와 비교해 원래 13개 변경·삭제가 없고, `words`·`haeum` CNAME과 `_github-pages-challenge-jasujung99.haeum` TXT 세 개만 추가됐음을 확인했다. 검증 값은 GitHub가 발급한 실제 값이며 추측하지 않았다. 무관한 `@`·`www`·메일·네임서버는 유지했다. 어휘 프로젝트의 production 배포도 유지했다.
+
+대표 Custom domain 변경 뒤 기존 `https://haeumkorean.me/`는 현재 404이며 자동 리디렉션되지 않는다. 새 해움 HTTPS 인증서는 발급·검증을 마쳤다. 원래 `.me` DNS·등록은 변경하지 않았으며, 롤백 시 아래 절차로 Pages Custom domain을 복구해야 한다.
 
 ## 운영 전환 순서
 
@@ -93,9 +97,9 @@ GitHub 개인 계정 Settings → Pages의 Verified domains도 미리 확인한�
 
 10월 24일 Cloudflare Deployments의 **활성 버전 `2ef03df4`, 트래픽 100%**와 편집기의 같은 Active 버전을 대조해 운영 코드를 직접 확인했다. 편집기 파일명은 `worker.js`였으며 `/api/answer`와 `/api/subscribe` 두 경로에 모두 `isAllowedOrigin` 판정을 적용한다. `corsHeaders`와 `isAllowedOrigin`은 `ALLOWED_ORIGIN`을 `split(',')`와 `trim()`으로 나누고, 요청·허용 항목의 `new URL(...).origin`을 비교한다. 허용 응답에는 요청 Origin 하나만 반환한다. 따라서 **현재 활성 코드의 복수 출처 지원은 확인 완료**다. 이 판정은 기존 OPTIONS 응답만으로 추정한 결과가 아니며, 저장소의 동명 구독 전용 샘플과 운영 소스 전체가 같다는 뜻도 아니다.
 
-같은 관리 화면에서 현재 환경변수는 Type `Variable`, `ALLOWED_ORIGIN = https://haeumkorean.me`임을 확인했다. 아직 값을 바꾸거나 Worker 코드를 수정·배포하지 않았다. 새 출처 허용은 미적용이며, 어휘 DNS·HTTPS·기능 확인이 끝난 다음 전환 순서의 4단계에서 old+new 값을 적용하고 활성 배포와 네 OPTIONS 결과를 다시 확인해야 한다.
+변경 전 환경변수는 Type `Variable`, `ALLOWED_ORIGIN = https://haeumkorean.me`였다. 10월 26일 어휘 HTTPS와 사용자 로그인·학습 정보 확인 후 **`https://haeumkorean.me,https://haeum.haeonkorean.com`**으로 Deploy했다. 활성 버전은 `e2af83d5`이며 두 API의 기존·새 출처 OPTIONS 네 건 모두 204와 각 요청 Origin 하나의 ACAO를 확인했다. Worker 소스나 Secrets는 수정하지 않았다. 미허용 Origin의 OPTIONS는 기존 구현상 쉼표 목록 헤더를 반환하지만 유효한 CORS 허용 값이 아니어서 브라우저는 허용하지 않는다. 이 음성 대조를 허용 성공으로 세지 않는다. 실제 POST의 답변·구독 처리 성공은 미검증이다.
 
-저장소의 `samples/worker` 변경은 샘플 변경이며 운영 Worker 배포나 대시보드 설정 변경을 의미하지 않는다. 세 샘플의 로컬 회귀 테스트 성공과 현재 운영 코드 검사, 앞으로의 운영 변수 적용·요청 검증은 별도 결과다.
+저장소의 `samples/worker` 변경은 샘플 변경이며 운영 Worker 배포나 대시보드 설정 변경을 의미하지 않는다. 세 샘플의 로컬 회귀 테스트, 운영 코드 직접 검사, 10월 26일 런타임 변수 적용·요청 검증은 각각 별도 결과다.
 
 `answer-worker.ts`는 명시적인 허용 목록이 없거나 `*`만 지정된 경우 요청을 403으로 거절한다. `unified-worker.js`와 `worker.js`의 기존 미설정·`*` fallback 로직은 이번 변경에서 유지했으므로 운영에서는 아래의 정확한 `ALLOWED_ORIGIN` 값을 반드시 지정한다. 세 샘플 모두 요청 Origin 하나를 허용 목록과 대조하는 동작을 로컬 회귀 테스트로 확인했다.
 
@@ -141,7 +145,7 @@ foreach ($origin in @('https://haeumkorean.me', 'https://haeum.haeonkorean.com')
 - 데스크톱·모바일 주요 화면, 이미지, 메뉴, 직접 링크와 새로고침, 외부 문의·예약 링크, 브라우저 개발자 도구의 CORS·혼합 콘텐츠·404 오류를 확인한다. 실제 구독 등 데이터를 만드는 테스트는 별도로 의도한 경우에만 수행한다.
 - 해온 본사이트 `haeonkorean.com`과 `www.haeonkorean.com`의 기존 응답·화면·이동 경로를 변경 전과 비교한다.
 
-최초 샌드박스 내 HTTPS 연결 시도는 환경의 외부 접속 제한으로 실패했지만, 이후 허용된 읽기 전용 재점검에서 기존 `.me`와 해온 본사이트 `@`·`www` 모두 HTTP 200을 확인했다. 새 도메인의 운영 DNS·HTTPS·API 기능은 아직 전환 전이다. [환경·검증 기록](domain-migration-validation.md)에서 로컬 결과와 운영 미완료 항목을 구분한다.
+초기 로컬·전환 전 점검과 10월 26일 실제 운영 설정 변경은 [환경·검증 기록](domain-migration-validation.md)에서 구분한다. 두 새 주소 HTTPS·Worker 두 Origin OPTIONS는 확인됐다. 최종 PR 번들 운영 배포, 그 번들의 새 어휘 링크·앵커 보완 운영 확인, 실제 API POST 성공은 아직 확인되지 않았다.
 
 ## 되돌리기와 기존 주소
 

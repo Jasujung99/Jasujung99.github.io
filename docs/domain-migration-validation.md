@@ -1,6 +1,6 @@
 # 도메인 변경 검증 기록
 
-점검일: 2026-10-23~25 (Asia/Seoul). 코드 PR은 미병합이며, 10월 24일 승인된 운영 순서의 첫 단계인 어휘 Custom domain 등록 요청을 진행했다. 10월 25일 재조회에서도 DNS 설정 대기 상태다. DNS·HTTPS·새 출처 허용은 아직 미완료다. 설정·전환 순서·롤백은 [운영 안내](domain-migration.md)를 따른다. 아래 초기 검증, 후속 코드 점검과 마지막 운영 진행 기록을 구분해 읽는다.
+점검일: 2026-10-23~26 (Asia/Seoul). 코드 PR은 미병합이다. 10월 26일 어휘 DNS·HTTPS와 사용자 로그인 확인 후 Worker 두 출처 허용, GitHub 계정 도메인 검증·Pages Custom domain·해움 CNAME을 순서대로 적용했다. 새 해움 HTTPS·강제 HTTPS와 기존 main의 URL 검증도 완료했다. PR 최종 번들의 운영 배포·확인은 별도 사용자 승인 병합 이후의 작업이다. 설정·전환 순서·롤백은 [운영 안내](domain-migration.md)를 따른다. 아래 초기 검증, 후속 코드 점검과 날짜별 운영 진행 기록을 구분해 읽는다.
 
 ## 시작 상태와 환경
 
@@ -82,4 +82,35 @@ PR #4는 Draft로 유지한다. 최신 전환 순서는 **Cloudflare Pages에 `w
 - **운영 환경변수는 아직 기존 값:** Settings → Variables and Secrets에서 Type `Variable`, `ALLOWED_ORIGIN = https://haeumkorean.me`를 확인했다. 값·코드·Worker 배포는 변경하지 않았다. 복수 출처 지원 확인과 새 Origin 운영 허용 완료는 다르다. 어휘 DNS·HTTPS·기능이 준비된 뒤 4단계에서 old+new 값을 적용하고 활성 버전·트래픽 및 두 API × 두 Origin의 OPTIONS를 재검증해야 한다.
 - **나머지 운영 단계 미실행:** GitHub Pages Custom domain, `haeum` DNS, PR #4 병합과 main 배포를 실행하지 않았다. 기존 `pages.dev` 주소·어휘 호스팅·해온 본사이트·`@`·`www`·메일·네임서버는 유지했다. 운영 진행 승인과 PR 병합 승인은 별개로 관리한다.
 
-현재 다음 작업은 로그인한 실제 DNS 관리 화면에서 기록·충돌 확인 후 `words` CNAME을 설정하는 것이다. 이 단계가 준비되지 않은 동안 이후 Worker 변수 적용과 해움 도메인 전환을 앞당기지 않는다.
+10월 25일 기록 당시 다음 작업은 로그인한 실제 DNS 관리 화면에서 기록·충돌 확인 후 `words` CNAME을 설정하는 것이었다. 이후 진행은 아래와 같다.
+
+## 승인 후 운영 진행 기록 (2026-10-26)
+
+- **DNS 백업·보존:** 실제 Hostinger 관리 화면에서 변경 전 영역 내보내기와 기존 13개 레코드·네임서버 기록을 완료했다. 같은 `words`·`haeum` 이름의 기존 레코드는 없었다. 최종 16개와 비교하여 원래 13개 변경·삭제 0, 추가 3개(`words` CNAME, `haeum` CNAME, GitHub 검증 TXT)를 확인했다. `@`·`www`·메일·네임서버를 변경하지 않았다.
+- **어휘 DNS·HTTPS:** `words CNAME → boa-newwords.pages.dev`, 기본 TTL 14400 추가 후 공개 DNS 반영을 확인했다. 초기에는 HTTPS TLS 연결에 실패했으며 이를 성공으로 기록하지 않았다. Cloudflare Check DNS records 실행 후 실제 `Active` / `SSL enabled`로 바뀌었고, 검증을 끄지 않은 HTTPS 홈·`/auth`·`/reset-password` 요청은 모두 200이었다. 기존 `pages.dev`·해온 `@`·`www`도 HTTPS 200이었다.
+- **어휘 브라우저·사용자 확인:** 새 주소의 홈·로그인 화면 및 `/auth` 새로고침이 정상 렌더됐고 점검한 브라우저 오류 로그는 없었다. 사용자가 새 주소에서 로그인과 기존 학습 정보가 정상이라고 명시적으로 확인했다. 기존 저장소·배포는 그대로다. 이메일 인증·비밀번호 재설정 메일 전송·인쇄 전체 흐름이나 Supabase 대시보드 설정 자체를 검사한 결과는 아니다.
+- **실제 Worker 적용:** 적용 직전 활성 `2ef03df4`가 유지되는지 다시 확인했다. 이 버전의 두 API 쉼표 목록 처리 코드는 10월 24일 직접 검사 완료한 소스다. 런타임 일반 텍스트 `ALLOWED_ORIGIN`만 `https://haeumkorean.me,https://haeum.haeonkorean.com`으로 수정하고 Deploy했다. 새 활성 버전 `e2af83d5`, 배포 메시지 `Updated variable: ALLOWED_ORIGIN`을 확인했다. 소스·기존 Secrets는 변경하지 않았다.
+
+| API | 요청 Origin | HTTP | Access-Control-Allow-Origin |
+| --- | --- | --- | --- |
+| `/api/answer` | `https://haeumkorean.me` | 204 | `https://haeumkorean.me` |
+| `/api/subscribe` | `https://haeumkorean.me` | 204 | `https://haeumkorean.me` |
+| `/api/answer` | `https://haeum.haeonkorean.com` | 204 | `https://haeum.haeonkorean.com` |
+| `/api/subscribe` | `https://haeum.haeonkorean.com` | 204 | `https://haeum.haeonkorean.com` |
+
+미허용 테스트 Origin `https://cors-audit.invalid`는 두 OPTIONS에서 204와 쉼표 목록 ACAO를 받았다. 이 값은 해당 Origin과 일치하지 않고 유효한 단일 Origin 헤더도 아니므로 브라우저 허용이 아니다. 기존 운영 구현의 비허용 응답 동작을 기록하며 실제 POST는 보내지 않았다. 네 허용 출처 검증과 API 업무 처리 성공을 구분한다.
+
+- **GitHub 계정·Pages:** 계정 수준에는 검증 도메인이 없었다. `haeum.haeonkorean.com`만 추가하고 GitHub 화면이 실제 발급한 TXT 이름·값을 Hostinger에 등록했다. 공개 TXT와 GitHub `Successfully verified` / `Verified`를 확인했다. 이어 대상 저장소 Pages의 Custom domain을 `haeum.haeonkorean.com`으로 저장했다. GitHub Actions 배포 방식·workflow·main 코드는 변경하지 않았다.
+- **해움 DNS·인증서:** Pages 저장 후 `haeum CNAME → jasujung99.github.io`, TTL 14400을 추가하고 공개 CNAME을 확인했다. HTTP는 200이지만 초기 HTTPS 검증은 인증서 이름 불일치로 실패했다. DNS 반영 후 GitHub Check again을 실행하자 `Requesting a certificate` / `TLS certificate is being provisioned`로 진행했다. 현재 발급 완료·Enforce HTTPS 성공으로 보고하지 않는다.
+- **현재 배포 URL 의존성:** 새 해움 HTTP에서 기존 main 공개 파일 41개 모두 200 및 main 원본과 바이트 일치, `/`·`/index.html`·실제 JS/CSS 포함 45 GET을 확인했다. 기존 main의 실제 `docsearch.ts`를 실행해 manifest+문서 25 GET 모두 200, 24문서 인덱스와 TOPIK 검색 4개를 확인했다. 이는 HTTP의 기존 main 검증이며 HTTPS나 PR 최종 번들 검증 완료는 아니다.
+- **기존 주소·미완료:** 대표 Custom domain 변경 후 `.me`는 HTTPS 404이며 자동 리디렉션되지 않는다. `.me` DNS·등록은 변경하지 않았다. 새 해움 HTTPS·브라우저 전체 점검, 실제 답변·구독 POST 및 병합 후 최종 번들 검증은 미완료다. PR #4는 Draft이며 병합·main Actions 배포를 실행하지 않았다.
+
+### 같은 날 HTTPS 준비 후 최종 재검증
+
+인증서 준비 중이던 위 중간 상태 이후 GitHub `DNS check successful`, 유효한 HTTPS 200을 확인하고 Enforce HTTPS를 켰다. 설정 화면 재조회에서도 활성 상태를 확인했다. 초기에는 HTTP 캐시가 200이었지만 후속 조회에서 루트·쿼리 포함 루트·`/kb/manifest.json` 모두 원래 path/query를 보존하는 HTTPS 301을 확인했다.
+
+- 새 **HTTPS**에서 기존 main 공개 파일 41개 모두 200 및 원본 바이트 일치. `/`·`/index.html`·배포 JS/CSS까지 총 45 GET 통과. 기존 실제 `docsearch.ts`의 manifest+문서 25 GET 모두 200, 24문서·24 section·TOPIK 검색 결과 4개 확인.
+- HTTPS 홈·`/#/roa`·`/#/loading`·`/#/education-exam`의 해당 화면을 확인했다. 브라우저 Ctrl+R로 세 hash 경로를 새로고침한 뒤 URL·해당 화면이 유지됐다. 점검한 이미지 손상·브라우저 오류 로그는 없었고 DocBot 패널·질문 입력 UI도 열렸다. 실제 질문 전송·구독 POST는 실행하지 않았다.
+- 네 앵커의 새 탭 직접 진입에서는 URL hash와 기존 section ID가 모두 보존됐다. 다만 기존 main은 초기 스크롤을 수행하지 않아 각 section의 위쪽 좌표가 422/731/1280/1666px였다. 이 기존 문제의 보완은 PR 로컬 최종 빌드에서 검증됐으며 아직 운영 적용되지 않았다. URL 존재와 초기 스크롤 성공을 구분한다.
+- 기존 main 어휘 버튼은 아직 `https://boa-newwords.pages.dev`다. 준비된 새 어휘 주소는 직접 열어 검증했고 사용자도 로그인·기존 학습 정보 정상 확인을 제공했다. PR을 병합하기 전 운영 버튼이 새 주소로 바뀌었다고 보고하지 않는다.
+- 기존 `.me`는 여전히 404로 자동 리디렉션되지 않는다. 두 새 주소의 인증서·현재 main 경로와 Worker OPTIONS 검증은 완료했지만, 최종 PR 번들 배포·그 번들의 앵커/링크 운영 점검, 실제 답변·구독 POST와 어휘 이메일/인쇄 전체 흐름은 미완료다. **PR #4는 Draft·미병합을 유지하며 병합은 별도 사용자 확인이 필요하다.**
