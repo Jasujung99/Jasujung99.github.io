@@ -4,6 +4,8 @@
 
 조사 기준은 전환 전 main `c2e4d2c82e3a111fd98312088fc06a97605e7e0b`와 최초 PR 변경 `34b5a22f20ed72a8930795b004a4c90f2c68f633`이다. `src/` 전체, `index.html`, `public/` 전체, Vite 설정, `samples/`, KB 동기화 스크립트의 `href`, `src`, `fetch`, `window.location`, 해시, DOM ID, 절대 URL과 루트 상대 경로를 조사했다. 환경변수의 비밀 값은 읽거나 기록하지 않았다.
 
+2026-10-27 최종 범위는 최신 main `486e8922`의 공지 디자인·온라인 학습 **개발 중** 화면을 유지한다. 공지의 잘못된 표시 주소와 href만 `haeum.haeonkorean.com`으로 바로잡고, PR의 앵커 초기 진입 보완·주소 설정·public 경로 보존을 적용한다. 어휘 사이트의 새 주소는 준비됐지만 홈의 어휘 버튼을 복구하지 않는다. `.me`는 별도 안내 페이지이며 아래 표는 옛 호스트의 모든 URL이 계속 응답하거나 리디렉션된다는 약속이 아니라 **새 해움 호스트에서 같은 경로를 보존하는 목록**이다.
+
 ## A. 앱 화면과 해시 경로
 
 `src/App.tsx`는 `window.location.hash`를 해석한다. `/roa` 같은 서버 경로와 `/#/roa` 같은 해시 경로는 다르다. 기존 URL의 경로·쿼리·해시는 유지하고 호스트만 바꾼다. `/haeum/` 접두 경로는 추가하지 않는다.
@@ -119,7 +121,7 @@ Vite `base`는 미지정 상태인 기본 `/`를 유지한다. public의 `/asset
 | 용도·근거 | 기존 값 | 목표 값 | 처리 |
 | --- | --- | --- | --- |
 | 대표 홈페이지: facts, about, README, CNAME | `https://haeumkorean.me` | `https://haeum.haeonkorean.com` | 홈페이지 호스트만 변경 |
-| 온라인 학습 단어장: 홈 링크 | `https://boa-newwords.pages.dev` | `https://words.haeonkorean.com` | 사용자가 지정한 외부 단어장 대표 링크 변경. 단어장 코드·호스팅 변경은 이 저장소의 작업이 아님 |
+| 별도 어휘 서비스 주소 | `https://boa-newwords.pages.dev` | `https://words.haeonkorean.com` | 기존 Pages 유지. 10월 27일 사용자 결정에 따라 해움 홈은 개발 중으로 유지하며 해당 버튼은 노출하지 않음 |
 | 네이버 톡톡 | `https://talk.naver.com/W7AQRM9` | 동일 | 상담 채널 보존 |
 | 네이버 스마트플레이스 | `https://m.place.naver.com/place/1283919586/home` | 동일 | 장소·예약 채널 보존 |
 | 네이버 블로그 | `https://blog.naver.com/haeumkorean` | 동일 | 블로그 보존 |

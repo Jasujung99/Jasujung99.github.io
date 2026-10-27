@@ -297,17 +297,14 @@ function HaeumHomePage(): JSX.Element {
           {/* 온라인 학습 섹션 */}
           <section id="online-learning" className="py-16">
             <h3 className="mb-6 text-2xl font-semibold text-[#4a5d52]">온라인 학습</h3>
-            <div className="rounded-2xl border border-[#317873]/10 bg-white p-8 shadow-sm text-center">
-              <h4 className="mb-3 text-2xl font-semibold text-[#4a5d52]">어휘</h4>
-              <p className="mb-6 text-[#5b5b5b]">빈출 단어 쓰기와 예문을 통해 어휘력을 늘려요.</p>
-              <a
-                href="https://words.haeonkorean.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center rounded-full bg-[#317873] px-8 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-[#285f5b]"
-              >
-                시작
-              </a>
+            <div className="flex flex-col items-center justify-center gap-5 rounded-2xl border border-dashed border-[#317873]/25 bg-gradient-to-b from-white to-[#f2f7f4] px-6 py-14 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-[#317873]/10 bg-white text-[#317873] shadow-sm">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8" aria-hidden="true">
+                  <path d="M14.5 6.5a5 5 0 0 0-6.7 6.7l-5 5a2.1 2.1 0 0 0 3 3l5-5a5 5 0 0 0 6.7-6.7L14 13l-3-3 3.5-3.5Z" />
+                  <path d="M19 3v4M17 5h4" />
+                </svg>
+              </div>
+              <h4 className="text-xl font-semibold tracking-tight text-[#4a5d52]">개발 중</h4>
             </div>
           </section>
 

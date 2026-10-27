@@ -2,9 +2,11 @@
 
 대상: `Jasujung99/Jasujung99.github.io` · 기존 `https://haeumkorean.me/` → 새 `https://haeum.haeonkorean.com/`
 
-연결된 어휘 서비스는 기존 Cloudflare Pages 프로젝트 `boa-newwords`를 유지하며, 해움 화면의 링크만 `https://boa-newwords.pages.dev` → `https://words.haeonkorean.com`으로 변경한다. 어휘 프로젝트의 이전·삭제나 `pages.dev` 주소 비활성화는 하지 않는다. 전체 URL과 정적 파일 대응표는 [URL 점검 목록](url-migration-inventory.md), 어휘 저장소·운영 환경의 읽기 전용 조사 결과는 [어휘 도메인 점검](vocabulary-domain-audit.md)에 기록한다.
+연결된 어휘 서비스는 기존 Cloudflare Pages 프로젝트 `boa-newwords`를 유지하며 사용자 주소를 `https://words.haeonkorean.com`으로 준비했다. 2026-10-27 사용자 결정에 따라 해움 홈의 온라인 학습은 **개발 중**으로 유지하고 어휘 버튼을 복구하지 않는다. 어휘 프로젝트의 이전·삭제나 `pages.dev` 주소 비활성화는 하지 않는다. 전체 URL과 정적 파일 대응표는 [URL 점검 목록](url-migration-inventory.md), 어휘 저장소·운영 환경의 읽기 전용 조사 결과는 [어휘 도메인 점검](vocabulary-domain-audit.md)에 기록한다.
 
 GitHub Pages와 기존 GitHub Actions 배포 구조를 유지한다. 코드 변경·PR 검토와 운영 전환은 별도 단계다. 사용자가 권장 순서의 운영 진행을 승인한 뒤 10월 24일 어휘 Custom domain 등록부터 진행했다. PR 병합은 별도 사용자 확인이 필요하다. Hostinger로 파일을 옮기거나 등록기관을 이전하지 않는다.
+
+**10월 27일 최종 적용 방침:** 사용자가 공지 주소 오타 수정, 개발 중 유지, 최신 main 반영·재검증 후 PR #4 병합과 기존 Actions 배포·사후 점검을 승인했다. 최신 공지의 표시 주소와 href를 `haeum.haeonkorean.com`으로 수정하며 디자인은 유지한다. 기존 `.me`는 현재 HTTPS 200 안내 페이지이고 새 주소 버튼이 정확하다. 자동 이동은 없으며 옛 `/kb/...`는 404, 새 해움의 대응 경로는 정상이다. 아래 10월 26일 표는 당시 진행 기록이며 최종 배포 결과는 PR #4와 Actions 기록을 따른다. 해온 별도 저장소의 백업은 이번 코드 변경 대상이 아니다.
 
 ## 변경 전 확인한 상태
 
@@ -43,7 +45,7 @@ GitHub Pages와 기존 GitHub Actions 배포 구조를 유지한다. 코드 변�
 
 DNS 변경 전 영역을 내보내고 13개 레코드와 네임서버를 기록했다. 변경 후 16개와 비교해 원래 13개 변경·삭제가 없고, `words`·`haeum` CNAME과 `_github-pages-challenge-jasujung99.haeum` TXT 세 개만 추가됐음을 확인했다. 검증 값은 GitHub가 발급한 실제 값이며 추측하지 않았다. 무관한 `@`·`www`·메일·네임서버는 유지했다. 어휘 프로젝트의 production 배포도 유지했다.
 
-대표 Custom domain 변경 뒤 기존 `https://haeumkorean.me/`는 현재 404이며 자동 리디렉션되지 않는다. 새 해움 HTTPS 인증서는 발급·검증을 마쳤다. 원래 `.me` DNS·등록은 변경하지 않았으며, 롤백 시 아래 절차로 Pages Custom domain을 복구해야 한다.
+10월 26일 대표 Custom domain 변경 직후 기존 `https://haeumkorean.me/`는 404였다. 이후 사용자가 별도 안내 페이지를 마련해 10월 27일 HTTPS 200과 정확한 새 주소 버튼을 확인했다. 자동 리디렉션은 없다. 새 해움 HTTPS 인증서는 발급·검증을 마쳤다. 이번 PR에서 `.me` 안내 페이지·DNS·등록은 변경하지 않는다.
 
 ## 운영 전환 순서
 
@@ -145,15 +147,15 @@ foreach ($origin in @('https://haeumkorean.me', 'https://haeum.haeonkorean.com')
 - 데스크톱·모바일 주요 화면, 이미지, 메뉴, 직접 링크와 새로고침, 외부 문의·예약 링크, 브라우저 개발자 도구의 CORS·혼합 콘텐츠·404 오류를 확인한다. 실제 구독 등 데이터를 만드는 테스트는 별도로 의도한 경우에만 수행한다.
 - 해온 본사이트 `haeonkorean.com`과 `www.haeonkorean.com`의 기존 응답·화면·이동 경로를 변경 전과 비교한다.
 
-초기 로컬·전환 전 점검과 10월 26일 실제 운영 설정 변경은 [환경·검증 기록](domain-migration-validation.md)에서 구분한다. 두 새 주소 HTTPS·Worker 두 Origin OPTIONS는 확인됐다. 최종 PR 번들 운영 배포, 그 번들의 새 어휘 링크·앵커 보완 운영 확인, 실제 API POST 성공은 아직 확인되지 않았다.
+초기 로컬·전환 전 점검과 10월 26일 실제 운영 설정 변경은 [환경·검증 기록](domain-migration-validation.md)에서 구분한다. 두 새 주소 HTTPS·Worker 두 Origin OPTIONS는 확인됐다. 최종 PR 번들의 공지 주소·개발 중 유지·앵커 보완은 승인된 배포 후 다시 확인하며, 실제 API POST 성공을 OPTIONS만으로 판단하지 않는다.
 
 ## 되돌리기와 기존 주소
 
 1. 변경 전 기록과 전환 시점을 확인하고 롤백을 결정한다. main을 강제 덮어쓰지 말고 주소 변경 커밋을 되돌리는 별도 PR을 검토한 뒤 사용자 확인을 받아 반영한다.
-2. 저장소 Pages Custom domain을 `haeumkorean.me`로 복구한다. 기존 `.me` 등록·DNS가 유효하고 위 GitHub Pages A 레코드가 유지되는지 확인한 뒤 DNS 확인·인증서·HTTPS를 다시 확인한다.
+2. 코드만 되돌릴 때는 새 Pages 도메인과 현재 `.me` 안내를 유지한 채 별도 revert PR을 검토한다. 도메인까지 되돌리기로 별도 결정한 경우에만 현재 `.me` 안내의 호스팅·DNS를 먼저 기록하고 Pages Custom domain과 DNS·인증서를 함께 복구한다. 현재 `.me`가 과거 GitHub Pages A 레코드를 계속 사용한다고 가정하거나 안내 페이지를 임의로 덮어쓰지 않는다.
 3. 이번에 추가·변경한 `haeum` 레코드만 변경 전 상태로 복원한다. 이번 공개 조회상은 이름 없음이었지만, 실제 관리자 화면에서 보관한 변경 전 기록을 우선한다. `@`, `www`, MX·TXT와 네임서버는 건드리지 않는다.
 4. 운영 Worker를 변경했다면 기록해 둔 허용 출처·운영 소스로 되돌리고 `.me`에서 CORS와 실제 기능을 다시 확인한다. 샘플 파일 복구만으로 운영 Worker가 복구되지는 않는다.
-5. 어휘 링크를 되돌려야 하면 `src/pages/HaeumHomePage.tsx`의 링크를 기존 `https://boa-newwords.pages.dev`로 복구하는 PR을 검토한다. 기존 Pages 프로젝트와 주소는 유지하므로 해당 주소의 기능을 먼저 확인한다.
+5. 해움 홈의 최종 방침은 개발 중 유지이며 복구할 어휘 링크가 없다. 향후 버튼을 다시 제공하기로 별도 결정하면 검증된 `https://words.haeonkorean.com`을 사용한다. 기존 Pages 프로젝트와 `pages.dev` 주소는 유지한다.
 6. `words` DNS를 변경했다면 **해당 이름만** 관리자 화면에서 보관한 변경 전 상태로 복원한다. 공개 DNS의 NXDOMAIN 기록을 근거로 기존 관리자 레코드를 무조건 삭제하지 않는다. 새 `words.haeonkorean.com` 연결을 해제할 필요가 있다면 DNS 복구와 별개로 Cloudflare Pages → `boa-newwords` → Custom domains에서 정확한 도메인만 사용자 확인 후 해제한다. 다른 연결 도메인·Pages 프로젝트·`pages.dev` 주소는 삭제하지 않는다. DNS 복원 후 다시 Pages에 연결할 때 활성화·인증서 확인이 필요할 수 있다. [Cloudflare 연결 해제와 재연결 주의](https://developers.cloudflare.com/pages/configuration/custom-domains/)
 
 기존 `.me` → 새 `.com`의 자동 리디렉션은 보장되지 않는다. GitHub가 제공하는 apex·`www` 쌍의 자동 리디렉션과 서로 다른 두 도메인 간 이전은 구분해야 한다. 이전 주소를 계속 새 주소로 보내려면 HTTPS를 지원하는 별도 리디렉션 서비스와 `.me`의 유효한 등록·DNS 유지가 필요하며, 이는 별도 설정·승인 대상이다. 기존 도메인 만료 후에도 유지된다고 약속할 수 없다. [GitHub 자동 리디렉션 범위](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/about-custom-domains-and-github-pages)

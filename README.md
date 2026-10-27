@@ -10,7 +10,7 @@ React와 Vite로 만들었고 GitHub Actions에서 Node.js 20으로 `npm ci → 
 
 환경·빌드·CORS·로컬 화면 점검 결과: [검증 기록](docs/domain-migration-validation.md).
 
-React 라우트·섹션 anchor·전체 public 파일의 이전 대응표: [URL inventory](docs/url-migration-inventory.md). 어휘 학습 링크는 `https://words.haeonkorean.com`을 사용한다. Cloudflare Pages의 새 custom domain과 DNS·HTTPS를 먼저 확인한 뒤에만 이 PR을 병합한다. 준비 전에는 Draft를 유지한다. 호스팅은 기존 `boa-newwords.pages.dev`에서 유지한다.
+React 라우트·섹션 anchor·전체 public 파일의 이전 대응표: [URL inventory](docs/url-migration-inventory.md). 온라인 학습은 2026-10-27 사용자 결정에 따라 **개발 중**으로 유지하며 어휘 시작 버튼을 노출하지 않는다. 별도 어휘 서비스 주소는 `https://words.haeonkorean.com`이고 호스팅은 기존 `boa-newwords.pages.dev`를 유지한다. 도메인·DNS·HTTPS와 운영 Worker 두 Origin 허용은 적용·검증했으며, PR #4의 최종 병합·배포 결과는 해당 PR과 Actions 기록에서 확인한다.
 
 실행
 

@@ -1,6 +1,8 @@
 # 어휘 학습 주소 전환: 점검과 운영 진행 기록
 
-점검일: 2026-10-23~26 · 기존 `https://boa-newwords.pages.dev/` → 새 `https://words.haeonkorean.com/`
+점검일: 2026-10-23~27 · 기존 `https://boa-newwords.pages.dev/` → 새 `https://words.haeonkorean.com/`
+
+**10월 27일 최종 방침:** 새 어휘 주소·기존 Pages 호스팅은 유지하되 해움 홈은 사용자 결정에 따라 **개발 중**으로 유지한다. 당초 PR의 새 어휘 링크는 최종 코드에 포함하지 않는다. 사용자는 최신 main 반영·재검증 후 PR #4 병합·기존 Actions 배포와 사후 확인을 승인했다. 아래 날짜별 조사·운영 진행과 최종 홈 노출 방침을 구분한다.
 
 기존 Cloudflare Pages 프로젝트 `boa-newwords`의 호스팅·배포를 유지하고 사용자 지정 도메인을 연결하는 작업이다. 초기 읽기 전용 조사 뒤 사용자가 운영 순서 진행을 승인하여 10월 24일 Custom domain 등록 요청을 추가하고 26일 Hostinger CNAME을 설정했다. 현재 새 도메인은 Active·SSL enabled이며 새 주소 HTTPS·사용자 로그인·기존 학습 정보 확인을 마쳤다. 다른 저장소의 코드·배포와 기존 `pages.dev` 주소는 유지했다. 신규 PR 생성·병합·사이트 배포는 실행하지 않았다.
 
@@ -62,7 +64,7 @@
 
 ## 전체 전환과 PR 적용 순서
 
-어휘 서비스의 Pages Custom domain 등록 → `words` CNAME → 어휘 새 주소의 DNS·HTTPS 및 인증 준비 → 해움 운영 Worker의 기존·새 출처 동시 허용 → 해움 GitHub Pages Custom domain → `haeum` CNAME → 두 새 주소의 실제 화면·기능·직접 경로 확인 → **사용자 확인 후 Draft PR #4 병합 시점 결정** 순서로 관리한다. 10월 26일 어휘 주소 준비와 사용자 로그인·기존 학습 정보 확인 뒤 해움 HTTPS·현재 main의 경로 검증까지 진행했다. PR 병합은 실행하지 않았다. 최종 링크 변경은 미병합 PR에만 있으며 기존 main의 어휘 버튼은 여전히 `pages.dev`를 가리킨다. 실제 API 업무 처리·이메일·인쇄 전체 흐름의 미검증 범위는 별도로 남는다.
+어휘 서비스의 Pages Custom domain 등록 → `words` CNAME → 어휘 새 주소의 DNS·HTTPS 및 인증 준비 → 해움 운영 Worker의 기존·새 출처 동시 허용 → 해움 GitHub Pages Custom domain → `haeum` CNAME → 두 새 주소의 실제 화면·기능·직접 경로 확인 → **사용자 확인 후 PR #4 병합** 순서로 관리한다. 10월 26일 어휘 주소 준비와 사용자 로그인·기존 학습 정보 확인 뒤 해움 HTTPS·현재 main의 경로 검증까지 진행했다. 10월 27일 사용자가 승인한 최종 해움 홈은 개발 중 화면으로, 새 어휘 버튼을 배포하지 않는다. 실제 API 업무 처리·이메일·인쇄 전체 흐름의 미검증 범위는 별도로 남는다.
 
 `boa-newwords.pages.dev`가 새 주소로 자동 리디렉션된다고 가정하지 않는다. 필요하면 새 도메인이 정상 활성화된 뒤 Cloudflare의 별도 리디렉션 기능을 검토한다. 기존 주소 유지·리디렉션 변경은 별도 운영 결정이다. [Cloudflare `.pages.dev` 리디렉션 안내](https://developers.cloudflare.com/pages/how-to/redirect-to-custom-domain/)
 
