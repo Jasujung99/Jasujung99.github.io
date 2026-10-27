@@ -349,7 +349,7 @@ function HaeumHomePage(): JSX.Element {
                 )}
               </span>
             </h3>
-            {/* 탭: 소식 받기 | 상담/문의 */}
+            {/* 소식 받기 */}
             <div className="mb-3 flex items-center gap-2 reveal-contact opacity-0 will-change-transform">
               <button
                 type="button"
@@ -359,14 +359,6 @@ function HaeumHomePage(): JSX.Element {
                 )}
                 onClick={() => setContactTab('subscribe')}
               >소식 받기</button>
-              <button
-                type="button"
-                className={cn(
-                  "rounded-full px-3 py-1 text-[12px]",
-                  contactTab === 'lead' ? "bg-[#317873] text-white" : "border border-[#317873]/30 text-[#2a6a66] hover:bg-[#f0faf7]"
-                )}
-                onClick={() => setContactTab('lead')}
-              >상담/문의</button>
             </div>
 
             {contactTab === 'subscribe' ? (
