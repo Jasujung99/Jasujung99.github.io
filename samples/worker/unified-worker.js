@@ -6,7 +6,8 @@
 // Env vars required:
 // - NOTION_TOKEN
 // - NOTION_DATABASE_ID
-// - ALLOWED_ORIGIN (e.g. "https://haeumkorean.me, https://heaumkorean.me")
+// - ALLOWED_ORIGIN (migration: "https://haeumkorean.me,https://haeum.haeonkorean.com")
+//   Keep both exact origins during the transition; do not use '*'.
 // - AI (Binding for Workers AI)
 
 export default {

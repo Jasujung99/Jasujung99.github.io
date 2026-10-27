@@ -22,6 +22,28 @@ function HaeumHomePage(): JSX.Element {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
   }
 
+  // React mounts after the browser's initial fragment lookup; keep direct section links working.
+  useEffect(() => {
+    let frame = 0;
+    const scrollToSection = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        const id = window.location.hash.slice(1);
+        if (["about", "programs", "online-learning", "contact"].includes(id)) {
+          document.getElementById(id)?.scrollIntoView();
+        }
+      });
+    };
+    scrollToSection();
+    window.addEventListener("hashchange", scrollToSection);
+    window.addEventListener("load", scrollToSection);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("hashchange", scrollToSection);
+      window.removeEventListener("load", scrollToSection);
+    };
+  }, []);
+
 
   // 프로그램 카드 리빌(프린트처럼 아래→위): IntersectionObserver + 스태거
   useEffect(() => {

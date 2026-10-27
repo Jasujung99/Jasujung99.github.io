@@ -1,6 +1,8 @@
 // Cloudflare Worker — Notion subscribe endpoint
 // Route: POST /api/subscribe
 // Env vars: NOTION_TOKEN, NOTION_DATABASE_ID, ALLOWED_ORIGIN (optional)
+// During migration set ALLOWED_ORIGIN explicitly to both exact origins:
+// https://haeumkorean.me,https://haeum.haeonkorean.com (do not use '*').
 
 export default {
   async fetch(request, env) {

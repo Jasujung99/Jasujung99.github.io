@@ -54,7 +54,7 @@
 
 ### 연락처 및 링크
 - 전화: 0507-1386-2171
-- 홈페이지: https://haeumkorean.me
+- 홈페이지: https://haeum.haeonkorean.com
 - 인스타그램: https://www.instagram.com/haeumkorean/
 - 블로그: https://blog.naver.com/haeumkorean
 - 네이버 스마트플레이스: https://m.place.naver.com/place/1283919586/home

@@ -43,10 +43,10 @@ export default function AnnouncementModal() {
             <span className="font-medium">haeumkorean.me</span>에서
           </p>
           <a
-            href="https://haeum.haeonkorea.com"
+            href="https://haeum.haeonkorean.com"
             className="mt-2 inline-block break-all text-lg font-semibold tracking-tight text-[#285f5b] underline decoration-[#317873]/25 underline-offset-4 transition hover:decoration-[#317873] focus-visible:rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#317873] sm:text-xl"
           >
-            haeum.haeonkorea.com
+            haeum.haeonkorean.com
           </a>
           <p className="mt-2 text-sm leading-relaxed text-[#5b5b5b]">으로 도메인을 변경하였습니다.</p>
         </div>
